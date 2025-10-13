@@ -1,0 +1,31 @@
+<conversation_summary>
+<decisions>
+1. Wszystkie fiszki przechowujemy w jednej kolekcji powiązanej z kontem użytkownika, bez dodatkowej encji zestawów.
+2. Każda fiszka zawiera wyłącznie tekst awersu i rewersu, ograniczony do 500 znaków na pole.
+3. Fiszki przechowują atrybut `source_type` z wartościami `AI_ORIGINAL`, `AI_EDITED` lub `MANUAL` dla odróżnienia pochodzenia.
+4. Przy zapisie fiszek z generacji AI uzupełniamy tabelę audytową o liczby wygenerowanych, zapisanych bez zmian, zapisanych po edycji i odrzuconych propozycji.
+5. Wszystkie rekordy podlegają miękkiemu usuwaniu przez kolumnę `deleted_at`, a po 30 dniach następuje usunięcie trwałe.
+6. Nie tworzymy lokalnej tabeli `users`; w tabelach domenowych przechowujemy identyfikator `user_id` odpowiadający Supabase Auth.
+7. Fiszki i powiązane dane zawierają obowiązkową kolumnę `user_id` na potrzeby RLS.
+8. Utrzymujemy znaczniki czasu `created_at` i `updated_at` dla śledzenia historii fiszek.
+9. Nie przechowujemy oryginalnego tekstu źródłowego użytego do generowania fiszek.
+10. Nie dodajemy dodatkowych mechanizmów kontroli współbieżności ani indeksów częściowych; pozostajemy przy podstawowych indeksach.
+</decisions>
+
+<matched_recommendations>
+1. Śledzenie pochodzenia fiszek (Rekomendacja 1) zostało przyjęte w postaci kolumny `source_type` bez dodatkowego `accepted_at`.
+2. Rejestrowanie statystyk generowania (Rekomendacja 2) zostanie zrealizowane przez dedykowaną tabelę audytową agregującą liczniki wyników.
+3. Mechanizm miękkiego usuwania (Rekomendacja 3) zostanie wdrożony poprzez kolumnę `deleted_at` i proces twardego kasowania po 30 dniach.
+4. Powiązanie fiszek z użytkownikiem dla RLS (Rekomendacja 5) pozostaje kluczowe; wykorzystujemy identyfikator z Supabase Auth.
+5. Utrzymywanie znaczników czasu (Rekomendacja 7) zostało zaakceptowane do monitorowania zmian.
+6. Lokalna tabela `users` (Rekomendacja 4) została świadomie odrzucona na rzecz bezpośredniego odwołania do Supabase Auth.
+7. Mechanizm kontroli współbieżności (Rekomendacja 9) nie jest wymagany w MVP zgodnie z ustaleniami.
+</matched_recommendations>
+
+<database_planning_summary>Planowany schemat MVP obejmuje główną tabelę `flashcards` z kolumnami `user_id`, `front_text`, `back_text`, `source_type`, `created_at`, `updated_at` i `deleted_at`. `user_id` będzie przechowywał identyfikator Supabase Auth, co pozwoli wdrożyć pełne polityki RLS zabraniające dostępu do cudzych rekordów. Tekst fiszek ograniczamy do 500 znaków na stronę, a `source_type` odróżnia fiszki ręczne, zapisane bez zmian oraz edytowane po generacji AI. Dodatkowo powstanie tabela audytowa rejestrująca zagregowane wyniki każdej sesji zapisu (liczby wygenerowanych, zaakceptowanych bez zmian, zaakceptowanych po edycji i odrzuconych), umożliwiająca raportowanie metryk z PRD. Wszystkie rekordy będą miękko usuwane przez `deleted_at`, z twardym czyszczeniem po 30 dniach, co spełnia wymogi RODO. Indeksowanie ograniczamy do podstawowych indeksów na `user_id` oraz innych kluczowych kolumn dla filtracji. Brak dodatkowych struktur (np. decków, historii sesji, przechowywania tekstu źródłowego czy mechanizmów kontroli współbieżności) upraszcza schemat i przyspiesza wdrożenie MVP, przy zachowaniu możliwości rozbudowy w przyszłości.</database_planning_summary>
+
+<unresolved_issues>
+- Wymagane jest doprecyzowanie struktury tabeli audytowej (nazwy kolumn, sposób powiązania z użytkownikiem i czasem) oraz zadań przetwarzających twarde kasowanie po 30 dniach.
+- Należy ustalić szczegóły polityk RLS dla tabeli audytowej, aby zapewnić pełną izolację danych użytkowników.
+</unresolved_issues>
+</conversation_summary>

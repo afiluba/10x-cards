@@ -1,94 +1,81 @@
-# 10x Astro Starter
+# 10x Cards
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+![Status](https://img.shields.io/badge/status-MVP%20w%20trakcie%20prac-orange) ![Version](https://img.shields.io/badge/version-0.0.1-blue) ![Node](https://img.shields.io/badge/node-22.14.0-43853d) ![License](https://img.shields.io/badge/license-MIT-green)
 
-## Tech Stack
+> Przekształć surowe notatki w dopracowane zestawy fiszek dzięki generowaniu wspomaganemu przez AI, ręcznej kuracji i wsparciu algorytmu powtórek.
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+## Spis treści
+- [1. Nazwa projektu](#1-nazwa-projektu)
+- [2. Opis projektu](#2-opis-projektu)
+- [3. Stos technologiczny](#3-stos-technologiczny)
+- [4. Uruchomienie lokalne](#4-uruchomienie-lokalne)
+- [5. Dostępne skrypty](#5-dostępne-skrypty)
+- [6. Zakres projektu](#6-zakres-projektu)
+- [7. Status projektu](#7-status-projektu)
+- [8. Licencja](#8-licencja)
 
-## Prerequisites
+## 1. Nazwa projektu
+- **10x Cards** — aplikacja do tworzenia fiszek z pomocą AI, która stawia na szybkość, jakość i mierzalne wyniki nauki.
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+## 2. Opis projektu
+- Wklej tekst źródłowy o rozmiarze do 32 KB, aby wygenerować maksymalnie 20 propozycji fiszek, z limitem 500 znaków na każdej stronie.
+- Selekcjonuj propozycje w dedykowanym widoku: akceptuj, edytuj, odrzucaj lub usuwaj przed zapisaniem w prywatnej bibliotece.
+- Twórz, edytuj i usuwaj ręczne fiszki współistniejące z tymi wygenerowanymi przez AI.
+- Uwierzytelniaj się przy pomocy Supabase, aby fiszki pozostawały prywatne dla danego konta użytkownika.
+- Synchronizuj zatwierdzone fiszki z zewnętrznym algorytmem powtórek i monitoruj wskaźniki akceptacji, edycji oraz odrzuceń dla oceny jakości AI.
 
-## Getting Started
+## 3. Stos technologiczny
+- **Frontend:** Astro 5, React 19, TypeScript 5, Tailwind CSS 4, komponenty shadcn/ui.
+- **Backend i uwierzytelnianie:** Supabase (PostgreSQL, moduły auth, narzędzia do przechowywania danych).
+- **Integracja AI:** OpenRouter.ai zapewniający dostęp do szerokiego katalogu dostawców modeli LLM.
+- **Narzędzia i CI/CD:** Node.js 22.14.0, npm, ESLint, Prettier, Husky, lint-staged, GitHub Actions, wdrożenia kontenerowe na DigitalOcean.
+- **Biblioteki UI i narzędzia:** @astrojs/node, @astrojs/react, class-variance-authority, clsx, lucide-react, tailwind-merge, tw-animate-css.
 
-1. Clone the repository:
+## 4. Uruchomienie lokalne
+**Wymagania wstępne**
+- Node.js 22.14.0 (plik `.nvmrc`) oraz npm.
+- Poświadczenia projektu Supabase i klucz API OpenRouter.
 
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+**Konfiguracja**
+1. Sklonuj repozytorium:
+   ```bash
+   git clone https://github.com/<twoja-organizacja>/10x-cards.git
+   cd 10x-cards
+   ```
+2. Zainstaluj zależności:
+   ```bash
+   npm install
+   ```
+3. Skonfiguruj zmienne środowiskowe:
+   - Utwórz plik `.env` (lub `.env.local`) z `SUPABASE_URL`, `SUPABASE_ANON_KEY`, opcjonalnymi kluczami roli serwisowej oraz `OPENROUTER_API_KEY`.
+   - Dodaj dane telemetryczne, jeśli eksportujesz metryki.
+4. Uruchom serwer deweloperski:
+   ```bash
+   npm run dev
+   ```
+5. Zbuduj i podglądaj produkcję (opcjonalnie):
+   ```bash
+   npm run build
+   npm run preview
+   ```
 
-2. Install dependencies:
+## 5. Dostępne skrypty
+- `npm run dev` — uruchamia serwer deweloperski Astro z przeładowaniem na żywo.
+- `npm run build` — generuje zoptymalizowaną wersję produkcyjną.
+- `npm run preview` — umożliwia lokalny podgląd zbudowanej aplikacji.
+- `npm run lint` — uruchamia ESLint dla plików `.ts`, `.tsx` i `.astro`.
+- `npm run lint:fix` — próbuje automatycznie naprawić problemy wykryte przez ESLint.
+- `npm run format` — formatuje pliki wspierane przez Prettiera.
 
-```bash
-npm install
-```
+## 6. Zakres projektu
+- **W zakresie:** Generowanie i przegląd fiszek wspomagany AI, ręczne zarządzanie fiszkami, konta użytkowników oparte na Supabase, filtry/wyszukiwanie w bibliotece, integracja z algorytmem powtórek, telemetryka akceptacji AI, responsywny interfejs webowy.
+- **Poza zakresem (MVP):** Własny algorytm powtórek, współdzielone/publiczne talie, import dokumentów (PDF/DOCX), aplikacje mobilne, zaawansowane powiadomienia, publiczne API, integracje z zewnętrznymi platformami edukacyjnymi, rozbudowane pulpity analityczne, onboarding AI, dedykowane narzędzia wsparcia.
+- **Kluczowe ograniczenia:** Tekst wejściowy ≤32 KB, każda strona fiszki ≤500 znaków, ≤20 fiszek na jedną sesję generowania, jeden język na konto, przejrzyste komunikaty o stanie operacji asynchronicznych.
+- **Cele sukcesu:** ≥75% fiszek generowanych przez AI zaakceptowanych; ≥75% nowych fiszek tworzonych z użyciem AI (oryginalnych lub edytowanych); zliczanie akceptacji/edycji/odrzuceń w każdej sesji generowania dla monitoringu jakości.
 
-3. Run the development server:
+## 7. Status projektu
+- MVP jest aktywnie rozwijane przez jednego inżyniera full-stack.
+- Kluczowe wymagania są udokumentowane w `.ai/prd.md`; prace obejmują moduły generowania, przeglądu, telemetryki i powtórek.
 
-```bash
-npm run dev
-```
-
-4. Build for production:
-
-```bash
-npm run build
-```
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
-
-## Project Structure
-
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
-
-## AI Development Support
-
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
-
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
-
-### Cursor IDE
-
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
-
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
-
-## License
-
-MIT
+## 8. Licencja
+- Licencja MIT. Przed publicznym wydaniem dodaj plik `LICENSE`, aby sformalizować dystrybucję.

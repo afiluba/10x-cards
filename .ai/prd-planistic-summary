@@ -1,0 +1,28 @@
+<conversation_summary>
+<decisions>
+Głównymi użytkownikami są studenci uczący się systematycznie.
+Użytkownicy wklejają czysty tekst (do 32 kB), z którego system generuje maksymalnie 20 propozycji fiszek.
+Każda fiszka ma do 500 znaków na stronie frontowej i tylnej.
+Ręczna edycja/ tworzenie obejmuje wyłącznie pola przód/tył, bez tagów czy dodatkowych atrybutów w MVP.
+Propozycje AI są prezentowane w podglądzie z opcjami akceptacji, edycji, odrzucenia lub usunięcia.
+Dla odrzuceń zbierana jest wyłącznie informacja ilościowa (bez powodów).
+Fiszki przechowują status pochodzenia (manualna, AI oryginalna, AI edytowana); utrzymywana jest tylko najnowsza wersja.
+W MVP nie ma limitów generowania ani onboardingów/tutoriali związanych z AI.
+Każdy użytkownik pracuje w jednym języku; fiszki są prywatne, logowanie zostanie dodane później.
+Zaawansowane funkcje powtórek, analityki, wsparcia oraz harmonogram projektu pozostają poza zakresem MVP.
+MVP rozwija jeden programista full-stack wspierany przez narzędzia AI.
+</decisions>
+<matched_recommendations>
+Zdefiniować kryteria jakości dla fiszek AI → zrealizowano poprzez limit 500 znaków na stronę dla wszystkich fiszek.
+Zaplanować proces przeglądu wielu fiszek naraz → potwierdzono generowanie (≤20) z możliwością akceptacji/edycji/odrzucenia każdej.
+Zbierać informację o odrzuceniach → przyjęto monitorowanie wyłącznie liczby odrzuceń bez wskazywania powodów.
+Określić strategię przechowywania i wersjonowania → ustalono, że przechowywana jest jedynie ostatnia wersja wraz ze statusem pochodzenia.
+</matched_recommendations>
+<prd_planning_summary>
+MVP odpowiada na problem czasochłonnego tworzenia fiszek, wspierając studentów w systematycznej nauce dzięki AI. Użytkownik wkleja tekst (do 32 kB), system proponuje do 20 fiszek, każda ograniczona do 500 znaków na stronie. Kluczowy przepływ obejmuje przegląd propozycji z akcjami akceptacji, edycji lub odrzucenia; ręczne tworzenie działa w tej samej formule przód/tył. Fiszki mają status źródła (manualne, AI oryginalne, AI edytowane) i tylko finalna wersja jest przechowywana, co umożliwia monitorowanie wskaźników jakości (75% akceptacji oraz 75% fiszek tworzonych z użyciem AI). Zbierane są jedynie liczby odrzuceń, bez dodatkowych analiz jakościowych. Obszary spoza MVP obejmują rozbudowaną obsługę spaced repetition, onboarding, wsparcie użytkowników, zaawansowaną analitykę i kwestie logowania, choć fiszki pozostają prywatne. Za rozwój odpowiada jednoosobowy zespół full-stack korzystający ze wsparcia AI.
+</prd_planning_summary>
+<unresolved_issues>
+Wymagane jest doprecyzowanie sposobu monitorowania celów 75% akceptacji oraz udziału AI (np. raporty, dashboardy) w późniejszych etapach.
+Kwestie autoryzacji i dodatkowych zabezpieczeń pozostają otwarte do momentu wdrożenia mechanizmu logowania i powinny być zaplanowane w kolejnych iteracjach.
+</unresolved_issues>
+</conversation_summary>

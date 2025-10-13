@@ -1,0 +1,23 @@
+[1 tool called]
+
+## Tech Stack Assessment
+
+- **MVP Velocity:** Supabase + OpenRouter handle persistence, auth, and AI quickly, but Astro + React + Tailwind + Shadcn means wiring Astro islands, React state, and UI kit styling before building the actual flows described in `prd.md`. A full-stack framework with first-class routing, data mutations, and UI primitives (e.g. Next.js with Supabase UI or a lighter component kit) could shave time off the single-developer MVP.
+
+- **Scalability:** Supabase’s managed Postgres and auth scale well for early growth, and OpenRouter lets us swap models as usage increases. Astro’s hybrid rendering is fine for marketing pages, yet the logged-in app is mostly dynamic CRUD; we’ll end up hydrating large islands or falling back to API routes, which erodes Astro’s performance advantages and may complicate horizontal scaling on DigitalOcean.
+
+- **Operating Cost:** Supabase and OpenRouter both start with generous free tiers; a small DO droplet is inexpensive. The concern is maintenance time rather than direct cost—managing Docker, patching the droplet, and keeping the Astro/React/Tailwind/Shadcn toolchain updated adds ongoing overhead for one engineer.
+
+- **Complexity vs. Need:** The stack in `tech-stack.md` bundles several overlapping layers:
+  
+  ```
+ 1:20:.ai/tech-stack.md
+Frontend - Astro z React... Tailwind 4... Shadcn/ui... Backend - Supabase... AI - Openrouter.ai...
+  ```
+  Coordinating Astro layouts, React client components, Tailwind utility styling, and Shadcn design system is heavy for an MVP whose core is authenticated dashboards and CRUD. Dropping Astro in favor of a unified React/SSR framework would simplify mental load without sacrificing speed.
+
+- **Simpler Alternatives:** A single framework like Next.js (with Supabase auth helpers and a leaner styling option such as Tailwind alone or Mantine) would cover routing, API routes, SSR/ISR, and UI without bridging Astro/React paradigms. For even faster iteration, consider Supabase Functions or a hosted React+Supabase template until product-market fit is proven.
+
+- **Security Posture:** Supabase provides robust auth and row-level security, but we must enforce policies explicitly. Hosting on a self-managed DigitalOcean droplet demands hardening, automated patching, and secret management. Astro doesn’t add security features; ensure SSR routes don’t leak service keys, and secure the AI proxy—OpenRouter keys must stay server-side with rate limiting and logging for compliance with the privacy expectations in `prd.md`.
+
+**Next steps:** Decide whether the Astro layer delivers unique value; if not, consolidating on a full-stack React framework will reduce integration risk and speed MVP delivery. Establish Supabase RLS and infra hardening plans early if you keep the current stack.

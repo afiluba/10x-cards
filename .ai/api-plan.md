@@ -145,7 +145,7 @@
   - **JSON żądania:**
     ```json
     {
-      "input_text": "string (1000-10000 chars)",
+      "input_text": "string (1000-32768 chars)",
       "model_identifier": "string or null",
       "client_request_id": "uuid or null"
     }

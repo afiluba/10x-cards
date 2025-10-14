@@ -1,0 +1,10 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GenerateContainer from "../components/generate/GenerateContainer";
+
+export const prerender = false;
+---
+
+<Layout title="Generowanie Fiszek AI - 10x Cards">
+  <GenerateContainer client:load />
+</Layout>

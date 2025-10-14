@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import type {
   AiGenerationSessionCreateCommand,
   AiGenerationSessionCreateResponseDTO,
@@ -17,7 +18,13 @@ interface UseGenerateFlashcardsReturn {
   error: ApiError | null;
   acceptedCount: number;
   rejectedCount: number;
-  
+
+  // Session recovery
+  hasRecoverableSession: boolean;
+  recoverableProposalsCount: number;
+  recoverSession: () => void;
+  discardRecovery: () => void;
+
   // Akcje
   setInputText: (text: string) => void;
   generateProposals: () => Promise<void>;
@@ -29,11 +36,22 @@ interface UseGenerateFlashcardsReturn {
   saveFlashcards: () => Promise<void>;
   retry: () => Promise<void>;
   reset: () => void;
-  
+
   // Computed values
   hasUnsavedProposals: boolean;
   canSave: boolean;
 }
+
+interface RecoverableSession {
+  session: GenerateState["session"];
+  proposals: ProposalViewModel[];
+  acceptedCount: number;
+  rejectedCount: number;
+  timestamp: number;
+}
+
+const SESSION_STORAGE_KEY = "ai-proposals-recovery";
+const MAX_RECOVERY_AGE_MS = 3600000; // 1 hour
 
 export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
   const [state, setState] = useState<GenerateState>({
@@ -46,43 +64,65 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
     rejectedCount: 0,
   });
 
+  const [recoverableSession, setRecoverableSession] = useState<RecoverableSession | null>(null);
+
   // Akcja: Ustawienie tekstu wejściowego
   const setInputText = useCallback((text: string) => {
-    setState(prev => ({ ...prev, inputText: text }));
+    setState((prev) => ({ ...prev, inputText: text }));
   }, []);
 
   // Akcja: Generowanie propozycji
   const generateProposals = useCallback(async () => {
-    setState(prev => ({ ...prev, viewState: "loading", error: null }));
-    
+    setState((prev) => ({ ...prev, viewState: "loading", error: null }));
+
     try {
       const command: AiGenerationSessionCreateCommand = {
         input_text: state.inputText,
         model_identifier: null,
         client_request_id: null,
       };
-      
+
       const response = await fetch("/api/ai-generation/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(command),
       });
-      
+
       if (!response.ok) {
         const errorData: ErrorResponseDTO = await response.json();
-        throw createApiError(errorData, response.status);
+        const apiError = createApiError(errorData, response.status);
+
+        // Dla błędów 500 pokaż toast, ale nie zmieniaj na error state
+        if (response.status === 500) {
+          toast.error("Wystąpił błąd systemowy", {
+            description: apiError.message,
+          });
+        }
+
+        throw apiError;
       }
-      
+
       const data: AiGenerationSessionCreateResponseDTO = await response.json();
-      
-      const proposalViewModels: ProposalViewModel[] = data.proposals.map(p => ({
+
+      const proposalViewModels: ProposalViewModel[] = data.proposals.map((p) => ({
         ...p,
         isAccepted: false,
         isEdited: false,
         isEditMode: false,
       }));
-      
-      setState(prev => ({
+
+      // Sukces - pokaż toast informacyjny
+      if (proposalViewModels.length === 0) {
+        toast.warning("Nie udało się wygenerować fiszek", {
+          description: "Spróbuj z innym tekstem lub zmień parametry",
+        });
+      } else {
+        toast.success("Fiszki wygenerowane!", {
+          description: `Wygenerowano ${proposalViewModels.length} propozycji`,
+        });
+      }
+
+      setState((prev) => ({
         ...prev,
         viewState: "proposals",
         session: data.session,
@@ -91,7 +131,7 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
         rejectedCount: 0,
       }));
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         viewState: "error",
         error: error as ApiError,
@@ -101,12 +141,12 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
 
   // Akcja: Toggle akceptacji propozycji
   const toggleProposalAccepted = useCallback((id: string) => {
-    setState(prev => {
-      const updatedProposals = prev.proposals.map(p =>
+    setState((prev) => {
+      const updatedProposals = prev.proposals.map((p) =>
         p.temporary_id === id ? { ...p, isAccepted: !p.isAccepted } : p
       );
-      const newAcceptedCount = updatedProposals.filter(p => p.isAccepted).length;
-      
+      const newAcceptedCount = updatedProposals.filter((p) => p.isAccepted).length;
+
       return {
         ...prev,
         proposals: updatedProposals,
@@ -117,8 +157,8 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
 
   // Akcja: Edycja propozycji
   const editProposal = useCallback((id: string, data: ProposalEditorData) => {
-    setState(prev => {
-      const updatedProposals = prev.proposals.map(p =>
+    setState((prev) => {
+      const updatedProposals = prev.proposals.map((p) =>
         p.temporary_id === id
           ? {
               ...p,
@@ -132,8 +172,8 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
             }
           : p
       );
-      const newAcceptedCount = updatedProposals.filter(p => p.isAccepted).length;
-      
+      const newAcceptedCount = updatedProposals.filter((p) => p.isAccepted).length;
+
       return {
         ...prev,
         proposals: updatedProposals,
@@ -144,10 +184,10 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
 
   // Akcja: Odrzucenie propozycji
   const rejectProposal = useCallback((id: string) => {
-    setState(prev => {
-      const updatedProposals = prev.proposals.filter(p => p.temporary_id !== id);
-      const newAcceptedCount = updatedProposals.filter(p => p.isAccepted).length;
-      
+    setState((prev) => {
+      const updatedProposals = prev.proposals.filter((p) => p.temporary_id !== id);
+      const newAcceptedCount = updatedProposals.filter((p) => p.isAccepted).length;
+
       return {
         ...prev,
         proposals: updatedProposals,
@@ -159,9 +199,9 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
 
   // Akcja: Zaznacz wszystkie propozycje
   const selectAllProposals = useCallback(() => {
-    setState(prev => {
-      const updatedProposals = prev.proposals.map(p => ({ ...p, isAccepted: true }));
-      
+    setState((prev) => {
+      const updatedProposals = prev.proposals.map((p) => ({ ...p, isAccepted: true }));
+
       return {
         ...prev,
         proposals: updatedProposals,
@@ -172,9 +212,9 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
 
   // Akcja: Odznacz wszystkie propozycje
   const deselectAllProposals = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      proposals: prev.proposals.map(p => ({ ...p, isAccepted: false })),
+      proposals: prev.proposals.map((p) => ({ ...p, isAccepted: false })),
       acceptedCount: 0,
     }));
   }, []);
@@ -182,42 +222,58 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
   // Akcja: Zapis fiszek
   const saveFlashcards = useCallback(async () => {
     if (!state.session) return;
-    
-    setState(prev => ({ ...prev, viewState: "saving" }));
-    
+
+    setState((prev) => ({ ...prev, viewState: "saving" }));
+
     try {
-      const acceptedProposals = state.proposals.filter(p => p.isAccepted);
-      
+      const acceptedProposals = state.proposals.filter((p) => p.isAccepted);
+
       if (acceptedProposals.length === 0) {
-        throw new Error("Brak zaakceptowanych propozycji");
+        toast.error("Brak zaakceptowanych propozycji");
+        setState((prev) => ({ ...prev, viewState: "proposals" }));
+        return;
       }
-      
+
       const command: FlashcardBatchSaveCommand = {
         ai_generation_audit_id: state.session.id,
         cards: acceptedProposals.map(proposalToSaveCommand) as [
           FlashcardBatchSaveCommand["cards"][0],
-          ...FlashcardBatchSaveCommand["cards"]
+          ...FlashcardBatchSaveCommand["cards"],
         ],
         rejected_count: state.rejectedCount,
       };
-      
+
       const response = await fetch("/api/flashcards/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(command),
       });
-      
+
       if (!response.ok) {
         const errorData: ErrorResponseDTO = await response.json();
-        throw createApiError(errorData, response.status);
+        const apiError = createApiError(errorData, response.status);
+
+        // Toast z błędem
+        toast.error("Nie udało się zapisać fiszek", {
+          description: apiError.message,
+        });
+
+        throw apiError;
       }
-      
+
       const data: FlashcardBatchSaveResponseDTO = await response.json();
-      
-      // Sukces - redirect do /my-cards
-      window.location.href = "/my-cards";
+
+      // Sukces - toast i redirect do /my-cards
+      toast.success("Fiszki zapisane!", {
+        description: `Zapisano ${data.saved_card_ids.length} fiszek`,
+      });
+
+      // Małe opóźnienie aby toast się wyświetlił przed redirectem
+      setTimeout(() => {
+        window.location.href = "/my-cards";
+      }, 500);
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         viewState: "proposals",
         error: error as ApiError,
@@ -253,6 +309,92 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
     return state.acceptedCount > 0 && state.session !== null && state.viewState !== "saving";
   }, [state.acceptedCount, state.session, state.viewState]);
 
+  // Session Storage helpers
+  const saveToSessionStorage = useCallback(() => {
+    if (state.session && state.proposals.length > 0) {
+      const sessionData: RecoverableSession = {
+        session: state.session,
+        proposals: state.proposals,
+        acceptedCount: state.acceptedCount,
+        rejectedCount: state.rejectedCount,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
+    }
+  }, [state.session, state.proposals, state.acceptedCount, state.rejectedCount]);
+
+  const loadFromSessionStorage = useCallback((): RecoverableSession | null => {
+    try {
+      const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (!stored) return null;
+
+      const data: RecoverableSession = JSON.parse(stored);
+
+      // Sprawdź czy nie jest za stara (max 1h)
+      if (Date.now() - data.timestamp > MAX_RECOVERY_AGE_MS) {
+        sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        return null;
+      }
+
+      return data;
+    } catch {
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      return null;
+    }
+  }, []);
+
+  const clearSessionStorage = useCallback(() => {
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+  }, []);
+
+  // Akcja: Przywróć sesję
+  const recoverSession = useCallback(() => {
+    if (!recoverableSession) return;
+
+    setState({
+      viewState: "proposals",
+      inputText: "",
+      session: recoverableSession.session,
+      proposals: recoverableSession.proposals,
+      error: null,
+      acceptedCount: recoverableSession.acceptedCount,
+      rejectedCount: recoverableSession.rejectedCount,
+    });
+
+    setRecoverableSession(null);
+    toast.success("Sesja przywrócona", {
+      description: `Przywrócono ${recoverableSession.proposals.length} propozycji`,
+    });
+  }, [recoverableSession]);
+
+  // Akcja: Odrzuć recovery
+  const discardRecovery = useCallback(() => {
+    clearSessionStorage();
+    setRecoverableSession(null);
+  }, [clearSessionStorage]);
+
+  // Effect: Sprawdź recovery przy montowaniu
+  useEffect(() => {
+    const recoverable = loadFromSessionStorage();
+    if (recoverable) {
+      setRecoverableSession(recoverable);
+    }
+  }, [loadFromSessionStorage]);
+
+  // Effect: Zapisz do sessionStorage przy zmianie propozycji
+  useEffect(() => {
+    if (state.viewState === "proposals" && state.proposals.length > 0) {
+      saveToSessionStorage();
+    }
+  }, [state.viewState, state.proposals, saveToSessionStorage]);
+
+  // Effect: Wyczyść sessionStorage po zapisie lub resecie
+  useEffect(() => {
+    if (state.viewState === "idle" && state.session === null) {
+      clearSessionStorage();
+    }
+  }, [state.viewState, state.session, clearSessionStorage]);
+
   return {
     // Stan
     viewState: state.viewState,
@@ -261,7 +403,13 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
     error: state.error,
     acceptedCount: state.acceptedCount,
     rejectedCount: state.rejectedCount,
-    
+
+    // Session recovery
+    hasRecoverableSession: recoverableSession !== null,
+    recoverableProposalsCount: recoverableSession?.proposals.length || 0,
+    recoverSession,
+    discardRecovery,
+
     // Akcje
     setInputText,
     generateProposals,
@@ -273,10 +421,9 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
     saveFlashcards,
     retry,
     reset,
-    
+
     // Computed values
     hasUnsavedProposals,
     canSave,
   };
 }
-

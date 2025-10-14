@@ -1,14 +1,31 @@
 import { useEffect } from "react";
 import { useGenerateFlashcards } from "./hooks/useGenerateFlashcards";
+import { GenerateForm } from "./GenerateForm";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
+import { ProposalsSection } from "./ProposalsSection";
+import { SessionRecoveryDialog } from "./SessionRecoveryDialog";
 
 export default function GenerateContainer() {
   const {
     viewState,
     inputText,
+    proposals,
+    acceptedCount,
     error,
     hasUnsavedProposals,
+    hasRecoverableSession,
+    recoverableProposalsCount,
+    recoverSession,
+    discardRecovery,
+    setInputText,
+    generateProposals,
+    toggleProposalAccepted,
+    editProposal,
+    rejectProposal,
+    selectAllProposals,
+    deselectAllProposals,
+    saveFlashcards,
     retry,
   } = useGenerateFlashcards();
 
@@ -20,13 +37,20 @@ export default function GenerateContainer() {
         e.returnValue = "";
       }
     };
-    
+
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedProposals]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <SessionRecoveryDialog
+        open={hasRecoverableSession}
+        proposalsCount={recoverableProposalsCount}
+        onRecover={recoverSession}
+        onDiscard={discardRecovery}
+      />
+
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Generowanie Fiszek AI</h1>
         <p className="text-muted-foreground">
@@ -36,28 +60,34 @@ export default function GenerateContainer() {
 
       <main>
         {viewState === "idle" && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Formularz będzie tutaj (Krok 4)</p>
-          </div>
+          <GenerateForm
+            inputText={inputText}
+            onInputChange={setInputText}
+            onGenerate={generateProposals}
+            isLoading={false}
+          />
         )}
 
         {viewState === "loading" && <LoadingState />}
 
-        {viewState === "error" && error && (
-          <ErrorState error={error} onRetry={retry} />
-        )}
+        {viewState === "error" && error && <ErrorState error={error} onRetry={retry} />}
 
         {viewState === "proposals" && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Propozycje będą tutaj (Kroki 5-8)</p>
-          </div>
+          <ProposalsSection
+            proposals={proposals}
+            acceptedCount={acceptedCount}
+            onSelectAll={selectAllProposals}
+            onDeselectAll={deselectAllProposals}
+            onCheck={toggleProposalAccepted}
+            onEdit={editProposal}
+            onReject={rejectProposal}
+            onSave={saveFlashcards}
+            isSaving={false}
+          />
         )}
 
-        {viewState === "saving" && (
-          <LoadingState message="Zapisuję fiszki..." />
-        )}
+        {viewState === "saving" && <LoadingState message="Zapisuję fiszki..." />}
       </main>
     </div>
   );
 }
-

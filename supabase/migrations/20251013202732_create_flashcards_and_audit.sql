@@ -38,7 +38,6 @@ create table public.ai_generation_audit (
   constraint ai_generation_audit_saved_unchanged_non_negative check (saved_unchanged_count >= 0),
   constraint ai_generation_audit_saved_edited_non_negative check (saved_edited_count >= 0),
   constraint ai_generation_audit_rejected_non_negative check (rejected_count >= 0),
-  constraint ai_generation_audit_counts_consistency check (generated_count = saved_unchanged_count + saved_edited_count + rejected_count),
   constraint ai_generation_audit_user_client_unique unique (user_id, client_request_id)
 );
 

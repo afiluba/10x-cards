@@ -10,7 +10,7 @@
 
 **ai_generation_audit**
 - Kolumny: `id` uuid PK default gen_random_uuid(); `user_id` uuid not null; `client_request_id` uuid not null default gen_random_uuid(); `model_identifier` text; `generation_started_at` timestamptz not null default now(); `generation_completed_at` timestamptz; `generated_count` integer not null; `saved_unchanged_count` integer not null; `saved_edited_count` integer not null; `rejected_count` integer not null; `created_at` timestamptz not null default now(); `updated_at` timestamptz not null default now(); `deleted_at` timestamptz.
-- Ograniczenia: `CHECK (generated_count >= 0)`; `CHECK (saved_unchanged_count >= 0)`; `CHECK (saved_edited_count >= 0)`; `CHECK (rejected_count >= 0)`; `CHECK (generated_count = saved_unchanged_count + saved_edited_count + rejected_count)`; `UNIQUE (user_id, client_request_id)`.
+- Ograniczenia: `CHECK (generated_count >= 0)`; `CHECK (saved_unchanged_count >= 0)`; `CHECK (saved_edited_count >= 0)`; `CHECK (rejected_count >= 0)`; `UNIQUE (user_id, client_request_id)`.
 - Uwagi: przechowuje dane agregowane dla każdej sesji generowania AI; brak przechowywania tekstu źródłowego.
 
 2. Relacje między tabelami

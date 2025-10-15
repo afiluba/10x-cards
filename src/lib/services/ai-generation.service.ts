@@ -248,7 +248,7 @@ export async function createAiGenerationSession(
 ): Promise<AiGenerationSessionCreateResponseDTO> {
   // Generate client_request_id if not provided
   const clientRequestId = command.client_request_id ?? crypto.randomUUID();
-  const modelIdentifier = command.model_identifier ?? "qwen/qwen3-coder:free";
+  const modelIdentifier = command.model_identifier ?? "qwen/qwen3-coder-30b-a3b-instruct";
 
   // Generate flashcard proposals using AI
   const proposals = await generateFlashcardProposals(command.input_text, modelIdentifier);

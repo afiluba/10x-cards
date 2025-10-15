@@ -4,7 +4,6 @@ import { GenerateForm } from "./GenerateForm";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 import { ProposalsSection } from "./ProposalsSection";
-import { SessionRecoveryDialog } from "./SessionRecoveryDialog";
 
 export default function GenerateContainer() {
   const {
@@ -14,10 +13,6 @@ export default function GenerateContainer() {
     acceptedCount,
     error,
     hasUnsavedProposals,
-    hasRecoverableSession,
-    recoverableProposalsCount,
-    recoverSession,
-    discardRecovery,
     setInputText,
     generateProposals,
     toggleProposalAccepted,
@@ -44,13 +39,6 @@ export default function GenerateContainer() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <SessionRecoveryDialog
-        open={hasRecoverableSession}
-        proposalsCount={recoverableProposalsCount}
-        onRecover={recoverSession}
-        onDiscard={discardRecovery}
-      />
-
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Generowanie Fiszek AI</h1>
         <p className="text-muted-foreground">

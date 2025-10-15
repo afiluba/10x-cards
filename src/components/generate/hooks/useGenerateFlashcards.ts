@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import type {
   AiGenerationSessionCreateCommand,
@@ -19,12 +19,6 @@ interface UseGenerateFlashcardsReturn {
   acceptedCount: number;
   rejectedCount: number;
 
-  // Session recovery
-  hasRecoverableSession: boolean;
-  recoverableProposalsCount: number;
-  recoverSession: () => void;
-  discardRecovery: () => void;
-
   // Akcje
   setInputText: (text: string) => void;
   generateProposals: () => Promise<void>;
@@ -42,17 +36,6 @@ interface UseGenerateFlashcardsReturn {
   canSave: boolean;
 }
 
-interface RecoverableSession {
-  session: GenerateState["session"];
-  proposals: ProposalViewModel[];
-  acceptedCount: number;
-  rejectedCount: number;
-  timestamp: number;
-}
-
-const SESSION_STORAGE_KEY = "ai-proposals-recovery";
-const MAX_RECOVERY_AGE_MS = 3600000; // 1 hour
-
 export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
   const [state, setState] = useState<GenerateState>({
     viewState: "idle",
@@ -63,8 +46,6 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
     acceptedCount: 0,
     rejectedCount: 0,
   });
-
-  const [recoverableSession, setRecoverableSession] = useState<RecoverableSession | null>(null);
 
   // Akcja: Ustawienie tekstu wejściowego
   const setInputText = useCallback((text: string) => {
@@ -309,92 +290,6 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
     return state.acceptedCount > 0 && state.session !== null && state.viewState !== "saving";
   }, [state.acceptedCount, state.session, state.viewState]);
 
-  // Session Storage helpers
-  const saveToSessionStorage = useCallback(() => {
-    if (state.session && state.proposals.length > 0) {
-      const sessionData: RecoverableSession = {
-        session: state.session,
-        proposals: state.proposals,
-        acceptedCount: state.acceptedCount,
-        rejectedCount: state.rejectedCount,
-        timestamp: Date.now(),
-      };
-      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
-    }
-  }, [state.session, state.proposals, state.acceptedCount, state.rejectedCount]);
-
-  const loadFromSessionStorage = useCallback((): RecoverableSession | null => {
-    try {
-      const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
-      if (!stored) return null;
-
-      const data: RecoverableSession = JSON.parse(stored);
-
-      // Sprawdź czy nie jest za stara (max 1h)
-      if (Date.now() - data.timestamp > MAX_RECOVERY_AGE_MS) {
-        sessionStorage.removeItem(SESSION_STORAGE_KEY);
-        return null;
-      }
-
-      return data;
-    } catch {
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-      return null;
-    }
-  }, []);
-
-  const clearSessionStorage = useCallback(() => {
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
-  }, []);
-
-  // Akcja: Przywróć sesję
-  const recoverSession = useCallback(() => {
-    if (!recoverableSession) return;
-
-    setState({
-      viewState: "proposals",
-      inputText: "",
-      session: recoverableSession.session,
-      proposals: recoverableSession.proposals,
-      error: null,
-      acceptedCount: recoverableSession.acceptedCount,
-      rejectedCount: recoverableSession.rejectedCount,
-    });
-
-    setRecoverableSession(null);
-    toast.success("Sesja przywrócona", {
-      description: `Przywrócono ${recoverableSession.proposals.length} propozycji`,
-    });
-  }, [recoverableSession]);
-
-  // Akcja: Odrzuć recovery
-  const discardRecovery = useCallback(() => {
-    clearSessionStorage();
-    setRecoverableSession(null);
-  }, [clearSessionStorage]);
-
-  // Effect: Sprawdź recovery przy montowaniu
-  useEffect(() => {
-    const recoverable = loadFromSessionStorage();
-    if (recoverable) {
-      setRecoverableSession(recoverable);
-    }
-  }, [loadFromSessionStorage]);
-
-  // Effect: Zapisz do sessionStorage przy zmianie propozycji
-  useEffect(() => {
-    if (state.viewState === "proposals" && state.proposals.length > 0) {
-      saveToSessionStorage();
-    }
-  }, [state.viewState, state.proposals, saveToSessionStorage]);
-
-  // Effect: Wyczyść sessionStorage po zapisie lub resecie
-  useEffect(() => {
-    if (state.viewState === "idle" && state.session === null) {
-      clearSessionStorage();
-    }
-  }, [state.viewState, state.session, clearSessionStorage]);
-
   return {
     // Stan
     viewState: state.viewState,
@@ -403,12 +298,6 @@ export function useGenerateFlashcards(): UseGenerateFlashcardsReturn {
     error: state.error,
     acceptedCount: state.acceptedCount,
     rejectedCount: state.rejectedCount,
-
-    // Session recovery
-    hasRecoverableSession: recoverableSession !== null,
-    recoverableProposalsCount: recoverableSession?.proposals.length || 0,
-    recoverSession,
-    discardRecovery,
 
     // Akcje
     setInputText,

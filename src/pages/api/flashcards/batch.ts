@@ -105,7 +105,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
   // 3. Get authenticated user ID
   // TODO: Replace with actual auth from context.locals.user once authentication is implemented
-  const STATIC_USER_ID = "00000000-0000-0000-0000-000000000000";
+  const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
 
   // Check authentication (placeholder for future implementation)
   if (!STATIC_USER_ID) {

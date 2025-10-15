@@ -92,7 +92,7 @@ export async function POST(context: APIContext): Promise<Response> {
   }
 
   // 3. Use static embedded user ID for testing (authentication will be added later)
-  const STATIC_USER_ID = "00000000-0000-0000-0000-000000000000";
+  const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
 
   // 4. Call AI generation service
   try {

@@ -1,5 +1,14 @@
 import type { supabaseClient } from "../../db/supabase.client";
-import type { FlashcardBatchSaveCommand, FlashcardBatchSaveResponseDTO } from "../../types";
+import type {
+  FlashcardBatchSaveCommand,
+  FlashcardBatchSaveResponseDTO,
+  FlashcardListQueryCommand,
+  FlashcardListResponseDTO,
+  FlashcardDTO,
+  FlashcardSourceType,
+  FlashcardSortableField,
+  SortDirection,
+} from "../../types";
 
 /**
  * Custom error factory for service layer errors.
@@ -146,6 +155,116 @@ export async function saveBatchFlashcards(
       saved_edited_count: updatedAudit.saved_edited_count,
       rejected_count: updatedAudit.rejected_count,
       generation_completed_at: updatedAudit.generation_completed_at,
+    },
+  };
+}
+
+/**
+ * Lists flashcards for authenticated user with filtering, pagination, and search.
+ *
+ * This function performs the following operations:
+ * 1. Builds a query with user-specific filtering (enforced by RLS)
+ * 2. Applies optional filters: source_type, updated_after, deleted status, search
+ * 3. Applies sorting based on the sort parameter
+ * 4. Applies pagination using range-based limiting
+ * 5. Returns paginated results with metadata
+ *
+ * Business rules:
+ * - Only returns flashcards owned by the authenticated user (RLS enforced)
+ * - By default excludes soft-deleted flashcards
+ * - Search is case-insensitive and matches both front and back text
+ * - Maximum page size is 100 items
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - Authenticated user ID
+ * @param query - Query parameters for filtering and pagination
+ * @returns Promise resolving to paginated flashcard list with metadata
+ * @throws Error with specific code and status for various failures
+ */
+export async function listFlashcards(
+  supabase: typeof supabaseClient,
+  userId: string,
+  query: FlashcardListQueryCommand
+): Promise<FlashcardListResponseDTO> {
+  // 1. Parse sort parameter
+  const [sortField, sortDirection] = (query.sort || "created_at:desc").split(":") as [
+    FlashcardSortableField,
+    SortDirection,
+  ];
+
+  // 2. Build base query with count
+  let queryBuilder = supabase
+    .from("flashcards")
+    .select("id, front_text, back_text, source_type, ai_generation_audit_id, created_at, updated_at", {
+      count: "exact",
+    })
+    .eq("user_id", userId);
+
+  // 3. Apply deleted_at filter
+  if (!query.include_deleted) {
+    queryBuilder = queryBuilder.is("deleted_at", null);
+  }
+
+  // 4. Apply source_type filter
+  if (query.source_type && query.source_type.length > 0) {
+    const dbSourceTypes = query.source_type.map((st) => st.toLowerCase() as "ai_original" | "ai_edited" | "manual");
+    queryBuilder = queryBuilder.in("source_type", dbSourceTypes);
+  }
+
+  // 5. Apply updated_after filter
+  if (query.updated_after) {
+    queryBuilder = queryBuilder.gt("updated_at", query.updated_after);
+  }
+
+  // 6. Apply search filter
+  if (query.search) {
+    const searchPattern = `%${query.search}%`;
+    queryBuilder = queryBuilder.or(`front_text.ilike.${searchPattern},back_text.ilike.${searchPattern}`);
+  }
+
+  // 7. Apply sorting
+  queryBuilder = queryBuilder.order(sortField, { ascending: sortDirection === "asc" });
+
+  // 8. Apply pagination
+  const page = query.page || 1;
+  const pageSize = query.page_size || 20;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  queryBuilder = queryBuilder.range(from, to);
+
+  // 9. Execute query
+  const { data, error, count } = await queryBuilder;
+
+  if (error) {
+    throw createError("DATABASE_ERROR", "Failed to fetch flashcards", 500, {
+      database_error: error.message,
+    });
+  }
+
+  // 10. Transform to DTOs
+  const flashcardDTOs: FlashcardDTO[] = (data || []).map((card) => ({
+    id: card.id,
+    front_text: card.front_text,
+    back_text: card.back_text,
+    source_type: card.source_type.toUpperCase() as FlashcardSourceType,
+    ai_generation_audit_id: card.ai_generation_audit_id,
+    created_at: card.created_at,
+    updated_at: card.updated_at,
+  }));
+
+  // 11. Calculate pagination metadata
+  const totalItems = count || 0;
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  // 12. Return response
+  return {
+    data: flashcardDTOs,
+    pagination: {
+      page,
+      page_size: pageSize,
+      total_items: totalItems,
+      total_pages: totalPages,
     },
   };
 }

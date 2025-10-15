@@ -33,3 +33,41 @@ export const FlashcardBatchSaveSchema = z.object({
  * TypeScript type inferred from the Zod schema.
  */
 export type FlashcardBatchSaveInput = z.infer<typeof FlashcardBatchSaveSchema>;
+
+/**
+ * Validation schema for GET /api/flashcards query parameters.
+ * Enforces:
+ * - Valid pagination parameters (page >= 1, page_size: 1-100)
+ * - Valid source type filtering (AI_ORIGINAL, AI_EDITED, MANUAL)
+ * - Valid ISO-8601 timestamp for updated_after
+ * - Valid sort parameter format (field:direction)
+ */
+export const FlashcardListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1, "Page must be at least 1").default(1),
+  page_size: z.coerce
+    .number()
+    .int()
+    .min(1, "Page size must be at least 1")
+    .max(100, "Page size must not exceed 100")
+    .default(20),
+  source_type: z
+    .union([z.enum(["AI_ORIGINAL", "AI_EDITED", "MANUAL"]), z.array(z.enum(["AI_ORIGINAL", "AI_EDITED", "MANUAL"]))])
+    .optional()
+    .transform((val) => (val ? (Array.isArray(val) ? val : [val]) : undefined)),
+  updated_after: z.string().datetime("Invalid ISO-8601 timestamp format").optional(),
+  include_deleted: z
+    .union([z.literal("true").transform(() => true), z.literal("false").transform(() => false), z.boolean()])
+    .optional()
+    .default(false),
+  search: z.string().trim().min(1, "Search query cannot be empty").optional(),
+  sort: z
+    .string()
+    .regex(/^(created_at|updated_at):(asc|desc)$/, "Sort must be in format 'field:direction'")
+    .default("created_at:desc")
+    .optional(),
+});
+
+/**
+ * TypeScript type inferred from the Zod schema.
+ */
+export type FlashcardListQueryInput = z.infer<typeof FlashcardListQuerySchema>;

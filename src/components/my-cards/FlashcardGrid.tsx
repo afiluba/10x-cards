@@ -13,9 +13,18 @@ interface FlashcardGridProps {
   onEdit: (id: string) => void;
   onDelete: (flashcard: FlashcardViewModel) => void;
   onFlip: (id: string) => void;
+  onSave: (id: string, data: { front_text: string; back_text: string }) => void;
+  onCancel: (id: string) => void;
 }
 
-export const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onEdit, onDelete, onFlip }) => {
+export const FlashcardGrid: React.FC<FlashcardGridProps> = ({
+  flashcards,
+  onEdit,
+  onDelete,
+  onFlip,
+  onSave,
+  onCancel
+}) => {
   if (flashcards.length === 0) {
     return (
       <div className="text-center py-12">
@@ -33,6 +42,8 @@ export const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onEdit
           onEdit={onEdit}
           onDelete={onDelete}
           onFlip={onFlip}
+          onSave={onSave}
+          onCancel={onCancel}
         />
       ))}
     </div>

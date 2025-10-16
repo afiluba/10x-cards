@@ -3,13 +3,20 @@ import {
   FlashcardListQuerySchema,
   FlashcardCreateSchema,
   FlashcardDeleteSchema,
+  FlashcardUpdateSchema,
 } from "../../../lib/schemas/flashcard.schemas";
-import { listFlashcards, createFlashcard, deleteFlashcard } from "../../../lib/services/flashcard.service";
+import {
+  listFlashcards,
+  createFlashcard,
+  deleteFlashcard,
+  updateFlashcard,
+} from "../../../lib/services/flashcard.service";
 import type {
   ErrorResponseDTO,
   FlashcardListQueryCommand,
   FlashcardCreateCommand,
   FlashcardDeleteCommand,
+  FlashcardUpdateCommand,
   FlashcardDTO,
   FlashcardDeleteResponseDTO,
 } from "../../../types";
@@ -366,6 +373,114 @@ export async function DELETE(context: APIContext): Promise<Response> {
     // Log error for monitoring
     // eslint-disable-next-line no-console
     console.error("[DELETE /api/flashcards/{id}] Error:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Handle custom service errors
+    if (error instanceof Error && "code" in error && "status" in error) {
+      const serviceError = error as Error & {
+        code: string;
+        status: number;
+        details?: Record<string, string>;
+      };
+
+      return createErrorResponse(serviceError.code, serviceError.message, serviceError.status, serviceError.details);
+    }
+
+    // Handle unexpected errors
+    return createErrorResponse("INTERNAL_SERVER_ERROR", "An unexpected error occurred", 500);
+  }
+}
+
+/**
+ * PATCH /api/flashcards/{id}
+ *
+ * Updates an existing flashcard.
+ *
+ * This endpoint:
+ * - Validates flashcard ID parameter
+ * - Validates request body against the Zod schema
+ * - Updates the flashcard with provided fields
+ * - Returns the updated flashcard DTO
+ *
+ * URL parameters:
+ * - id: string (UUID of the flashcard to update)
+ *
+ * Request body (partial update):
+ * - front_text?: string (1-500 chars)
+ * - back_text?: string (1-500 chars)
+ * - source_type?: "AI_EDITED" | "MANUAL"
+ *
+ * Response (200):
+ * - FlashcardDTO with the updated flashcard
+ *
+ * Error responses:
+ * - 400: Invalid flashcard ID, request body, or validation errors
+ * - 401: Unauthorized (not authenticated)
+ * - 404: Flashcard not found or not owned by user
+ - 500: Internal server error or database error
+ */
+export async function PATCH(context: APIContext): Promise<Response> {
+  try {
+    // 1. Get Supabase client from context
+    const supabase = context.locals.supabase;
+    if (!supabase) {
+      return createErrorResponse("INTERNAL_SERVER_ERROR", "Database client not available", 500);
+    }
+
+    // 2. Get authenticated user ID
+    // TODO: Replace with actual auth from context.locals.user once authentication is implemented
+    const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
+
+    // Check authentication (placeholder for future implementation)
+    if (!STATIC_USER_ID) {
+      return createErrorResponse("UNAUTHORIZED", "Authentication required", 401);
+    }
+
+    // 3. Validate flashcard ID parameter
+    const { id } = context.params;
+    if (!id || typeof id !== "string") {
+      return createErrorResponse("INVALID_FLASHCARD_ID", "Valid flashcard ID is required", 400);
+    }
+
+    // 4. Parse and validate request body
+    const requestBody = await context.request.json();
+    const validationResult = FlashcardUpdateSchema.safeParse(requestBody);
+
+    if (!validationResult.success) {
+      const details: Record<string, string> = {};
+      validationResult.error.errors.forEach((err) => {
+        const field = err.path.join(".");
+        details[field] = err.message;
+      });
+
+      return createErrorResponse("INVALID_REQUEST_BODY", "Invalid request body provided", 400, details);
+    }
+
+    const validatedCommand = validationResult.data;
+
+    // 5. Check if at least one field is provided
+    if (!validatedCommand.front_text && !validatedCommand.back_text && !validatedCommand.source_type) {
+      return createErrorResponse("NO_FIELDS_TO_UPDATE", "At least one field must be provided for update", 400);
+    }
+
+    // 6. Call service layer to update flashcard
+    const result = await updateFlashcard(supabase, STATIC_USER_ID, id, validatedCommand as FlashcardUpdateCommand);
+
+    // 7. Return successful response
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (error) {
+    // Log error for monitoring
+    // eslint-disable-next-line no-console
+    console.error("[PATCH /api/flashcards/{id}] Error:", {
       error: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString(),

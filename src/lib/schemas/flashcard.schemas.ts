@@ -102,6 +102,37 @@ export const FlashcardCreateSchema = z.object({
 export type FlashcardCreateInput = z.infer<typeof FlashcardCreateSchema>;
 
 /**
+ * Validation schema for PATCH /api/flashcards/{id} request body.
+ * Enforces:
+ * - Text length constraints (1-500 characters) if provided
+ * - Source type can only be AI_EDITED or MANUAL if provided
+ */
+export const FlashcardUpdateSchema = z.object({
+  front_text: z
+    .string()
+    .min(1, "Front text cannot be empty")
+    .max(500, "Front text must not exceed 500 characters")
+    .trim()
+    .optional(),
+  back_text: z
+    .string()
+    .min(1, "Back text cannot be empty")
+    .max(500, "Back text must not exceed 500 characters")
+    .trim()
+    .optional(),
+  source_type: z
+    .enum(["AI_EDITED", "MANUAL"], {
+      errorMap: () => ({ message: "Source type can only be AI_EDITED or MANUAL" }),
+    })
+    .optional(),
+});
+
+/**
+ * TypeScript type inferred from the Zod schema.
+ */
+export type FlashcardUpdateInput = z.infer<typeof FlashcardUpdateSchema>;
+
+/**
  * Validation schema for DELETE /api/flashcards/{id} request body.
  * Enforces:
  * - Optional reason string (max 500 characters)

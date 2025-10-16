@@ -236,6 +236,103 @@ export async function createFlashcard(
 }
 
 /**
+ * Updates a flashcard for the authenticated user.
+ *
+ * This function performs the following operations:
+ * 1. Validates text lengths (1-500 characters) if provided
+ * 2. Validates source type (only AI_EDITED or MANUAL allowed)
+ * 3. Updates the flashcard with provided fields
+ * 4. Returns the updated flashcard DTO
+ *
+ * Business rules:
+ * - Only allows updates of user's own flashcards (RLS enforced)
+ * - Source type can only be changed to AI_EDITED or MANUAL
+ * - Text fields must be between 1-500 characters if provided
+ * - Partial updates are allowed (only provided fields are updated)
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - Authenticated user ID
+ * @param flashcardId - ID of flashcard to update
+ * @param command - Update command with partial flashcard data
+ * @returns Promise resolving to updated flashcard DTO
+ * @throws Error with specific code and status for validation failures
+ */
+export async function updateFlashcard(
+  supabase: typeof supabaseClient,
+  userId: string,
+  flashcardId: string,
+  command: FlashcardUpdateCommand
+): Promise<FlashcardDTO> {
+  // 1. Validate text lengths if provided
+  if (command.front_text !== undefined) {
+    if (command.front_text.length < 1 || command.front_text.length > 500) {
+      throw createError("INVALID_FRONT_TEXT", "Front text must be between 1 and 500 characters", 400, {
+        length: command.front_text.length.toString(),
+      });
+    }
+  }
+
+  if (command.back_text !== undefined) {
+    if (command.back_text.length < 1 || command.back_text.length > 500) {
+      throw createError("INVALID_BACK_TEXT", "Back text must be between 1 and 500 characters", 400, {
+        length: command.back_text.length.toString(),
+      });
+    }
+  }
+
+  // 2. Validate source type if provided
+  if (command.source_type !== undefined) {
+    if (!["AI_EDITED", "MANUAL"].includes(command.source_type)) {
+      throw createError("INVALID_SOURCE_TYPE", "Source type can only be updated to AI_EDITED or MANUAL", 400);
+    }
+  }
+
+  // 3. Prepare update data
+  const updateData: Record<string, any> = {};
+
+  if (command.front_text !== undefined) {
+    updateData.front_text = command.front_text;
+  }
+
+  if (command.back_text !== undefined) {
+    updateData.back_text = command.back_text;
+  }
+
+  if (command.source_type !== undefined) {
+    updateData.source_type = command.source_type.toLowerCase();
+  }
+
+  // Add updated_at timestamp
+  updateData.updated_at = new Date().toISOString();
+
+  // 4. Update flashcard
+  const { data: updatedCard, error: updateError } = await supabase
+    .from("flashcards")
+    .update(updateData)
+    .eq("id", flashcardId)
+    .eq("user_id", userId)
+    .select("id, front_text, back_text, source_type, ai_generation_audit_id, created_at, updated_at")
+    .single();
+
+  if (updateError || !updatedCard) {
+    throw createError("DATABASE_ERROR", "Failed to update flashcard", 500, {
+      database_error: updateError?.message,
+    });
+  }
+
+  // 5. Transform to DTO
+  return {
+    id: updatedCard.id,
+    front_text: updatedCard.front_text,
+    back_text: updatedCard.back_text,
+    source_type: updatedCard.source_type.toUpperCase() as FlashcardSourceType,
+    ai_generation_audit_id: updatedCard.ai_generation_audit_id,
+    created_at: updatedCard.created_at,
+    updated_at: updatedCard.updated_at,
+  };
+}
+
+/**
  * Soft deletes a flashcard for the authenticated user.
  *
  * This function performs the following operations:

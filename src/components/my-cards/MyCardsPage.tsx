@@ -21,6 +21,7 @@ const MyCardsPage: React.FC = () => {
     error,
     updateFilters,
     createFlashcard,
+    updateFlashcard,
     deleteFlashcard,
     flipFlashcard,
     startEditingFlashcard,
@@ -60,6 +61,24 @@ const MyCardsPage: React.FC = () => {
 
   const handleEditFlashcard = (id: string) => {
     startEditingFlashcard(id);
+  };
+
+  const handleSaveFlashcard = async (id: string, data: { front_text: string; back_text: string }) => {
+    try {
+      await updateFlashcard(id, {
+        front_text: data.front_text,
+        back_text: data.back_text,
+      });
+      stopEditingFlashcard(id);
+      toast.success("Fiszka została zaktualizowana pomyślnie");
+    } catch (err) {
+      // Error is already handled in the hook
+      toast.error("Nie udało się zaktualizować fiszki");
+    }
+  };
+
+  const handleCancelEdit = (id: string) => {
+    stopEditingFlashcard(id);
   };
 
   const handleDeleteFlashcard = (flashcard: any) => {
@@ -124,6 +143,8 @@ const MyCardsPage: React.FC = () => {
         onEdit={handleEditFlashcard}
         onDelete={handleDeleteFlashcard}
         onFlip={flipFlashcard}
+        onSave={handleSaveFlashcard}
+        onCancel={handleCancelEdit}
       />
       <Pagination pagination={pagination} onChange={handlePaginationChange} />
       <CreateFlashcardModal

@@ -49,6 +49,7 @@ interface UseFlashcardsStateReturn {
   // Actions
   updateFilters: (newFilters: Partial<FiltersViewModel>) => void;
   createFlashcard: (command: FlashcardCreateCommand) => Promise<FlashcardDTO>;
+  updateFlashcard: (id: string, command: FlashcardUpdateCommand) => Promise<FlashcardDTO>;
   deleteFlashcard: (id: string, reason?: string) => Promise<FlashcardDeleteResponseDTO>;
   flipFlashcard: (id: string) => void;
   startEditingFlashcard: (id: string) => void;
@@ -227,6 +228,24 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
     return await response.json();
   }, []);
 
+  // Update flashcard
+  const updateFlashcardApi = useCallback(async (id: string, command: FlashcardUpdateCommand): Promise<FlashcardDTO> => {
+    const response = await fetch(`/api/flashcards/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(command),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  }, []);
+
   // Delete flashcard
   const deleteFlashcardApi = useCallback(async (id: string, reason?: string): Promise<FlashcardDeleteResponseDTO> => {
     const response = await fetch(`/api/flashcards/${id}`, {
@@ -268,6 +287,33 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
       throw err;
     }
   }, [createFlashcardApi, calculateStats, flashcards]);
+
+  // Update flashcard wrapper
+  const updateFlashcard = useCallback(async (id: string, command: FlashcardUpdateCommand): Promise<FlashcardDTO> => {
+    try {
+      const updatedCard = await updateFlashcardApi(id, command);
+
+      // Update local state (optimistic update)
+      setFlashcards(prev => prev.map(card =>
+        card.id === id
+          ? { ...updatedCard, isFlipped: card.isFlipped, isEditing: false, isDeleting: card.isDeleting }
+          : card
+      ));
+
+      // Update stats if source_type changed
+      if (command.source_type) {
+        setStats(prev => calculateStats(flashcards.map(f =>
+          f.id === id ? { ...updatedCard } : { ...f }
+        )));
+      }
+
+      return updatedCard;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update flashcard";
+      setError(errorMessage);
+      throw err;
+    }
+  }, [updateFlashcardApi, calculateStats, flashcards]);
 
   // Delete flashcard wrapper
   const deleteFlashcard = useCallback(async (id: string, reason?: string): Promise<FlashcardDeleteResponseDTO> => {
@@ -398,6 +444,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
     error,
     updateFilters,
     createFlashcard,
+    updateFlashcard,
     deleteFlashcard,
     flipFlashcard,
     startEditingFlashcard,

@@ -9,6 +9,7 @@ interface Props {
 
 const { title = "10x Astro Starter" } = Astro.props;
 const currentPath = Astro.url.pathname;
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -21,7 +22,7 @@ const currentPath = Astro.url.pathname;
     <title>{title}</title>
   </head>
   <body>
-    <TopNavbarWrapper currentPath={currentPath} client:load />
+    <TopNavbarWrapper currentPath={currentPath} user={user} client:load />
     <slot />
     <Toaster client:load />
   </body>

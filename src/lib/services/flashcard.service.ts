@@ -5,6 +5,9 @@ import type {
   FlashcardListQueryCommand,
   FlashcardListResponseDTO,
   FlashcardDTO,
+  FlashcardCreateCommand,
+  FlashcardDeleteCommand,
+  FlashcardDeleteResponseDTO,
   FlashcardSourceType,
   FlashcardSortableField,
   SortDirection,
@@ -156,6 +159,128 @@ export async function saveBatchFlashcards(
       rejected_count: updatedAudit.rejected_count,
       generation_completed_at: updatedAudit.generation_completed_at,
     },
+  };
+}
+
+/**
+ * Creates a new manual flashcard for the authenticated user.
+ *
+ * This function performs the following operations:
+ * 1. Validates text lengths (1-500 characters)
+ * 2. Inserts the flashcard with MANUAL source type
+ * 3. Returns the created flashcard DTO
+ *
+ * Business rules:
+ * - Source type is restricted to MANUAL for this endpoint
+ * - Text fields must be between 1-500 characters
+ * - User ownership is enforced by RLS
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - Authenticated user ID
+ * @param command - Create command with front_text, back_text, source_type
+ * @returns Promise resolving to created flashcard DTO
+ * @throws Error with specific code and status for validation failures
+ */
+export async function createFlashcard(
+  supabase: typeof supabaseClient,
+  userId: string,
+  command: FlashcardCreateCommand
+): Promise<FlashcardDTO> {
+  // 1. Validate text lengths
+  if (command.front_text.length < 1 || command.front_text.length > 500) {
+    throw createError("INVALID_FRONT_TEXT", "Front text must be between 1 and 500 characters", 400, {
+      length: command.front_text.length.toString(),
+    });
+  }
+
+  if (command.back_text.length < 1 || command.back_text.length > 500) {
+    throw createError("INVALID_BACK_TEXT", "Back text must be between 1 and 500 characters", 400, {
+      length: command.back_text.length.toString(),
+    });
+  }
+
+  // 2. Validate source type (must be MANUAL)
+  if (command.source_type !== "MANUAL") {
+    throw createError("INVALID_SOURCE_TYPE", "Manual flashcards must have MANUAL source type", 400);
+  }
+
+  // 3. Insert flashcard
+  const { data: insertedCard, error: insertError } = await supabase
+    .from("flashcards")
+    .insert({
+      user_id: userId,
+      front_text: command.front_text,
+      back_text: command.back_text,
+      source_type: "manual",
+      ai_generation_audit_id: command.ai_generation_audit_id || null,
+    })
+    .select("id, front_text, back_text, source_type, ai_generation_audit_id, created_at, updated_at")
+    .single();
+
+  if (insertError || !insertedCard) {
+    throw createError("DATABASE_ERROR", "Failed to create flashcard", 500, {
+      database_error: insertError?.message,
+    });
+  }
+
+  // 4. Transform to DTO
+  return {
+    id: insertedCard.id,
+    front_text: insertedCard.front_text,
+    back_text: insertedCard.back_text,
+    source_type: insertedCard.source_type.toUpperCase() as FlashcardSourceType,
+    ai_generation_audit_id: insertedCard.ai_generation_audit_id,
+    created_at: insertedCard.created_at,
+    updated_at: insertedCard.updated_at,
+  };
+}
+
+/**
+ * Soft deletes a flashcard for the authenticated user.
+ *
+ * This function performs the following operations:
+ * 1. Updates the deleted_at timestamp (soft delete)
+ * 2. Returns the flashcard ID and deletion timestamp
+ *
+ * Business rules:
+ * - Only allows deletion of user's own flashcards (RLS enforced)
+ * - Uses soft delete to preserve data integrity
+ * - Reason is optional for audit purposes
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - Authenticated user ID
+ * @param flashcardId - ID of flashcard to delete
+ * @param command - Delete command with optional reason
+ * @returns Promise resolving to delete response DTO
+ * @throws Error with specific code and status for various failures
+ */
+export async function deleteFlashcard(
+  supabase: typeof supabaseClient,
+  userId: string,
+  flashcardId: string,
+  command: FlashcardDeleteCommand
+): Promise<FlashcardDeleteResponseDTO> {
+  // 1. Update flashcard with deleted_at timestamp
+  const { data: updatedCard, error: updateError } = await supabase
+    .from("flashcards")
+    .update({
+      deleted_at: new Date().toISOString(),
+    })
+    .eq("id", flashcardId)
+    .eq("user_id", userId)
+    .select("id, deleted_at")
+    .single();
+
+  if (updateError || !updatedCard) {
+    throw createError("DATABASE_ERROR", "Failed to delete flashcard", 500, {
+      database_error: updateError?.message,
+    });
+  }
+
+  // 2. Return response
+  return {
+    id: updatedCard.id,
+    deleted_at: updatedCard.deleted_at,
   };
 }
 

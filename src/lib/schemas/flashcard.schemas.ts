@@ -71,3 +71,49 @@ export const FlashcardListQuerySchema = z.object({
  * TypeScript type inferred from the Zod schema.
  */
 export type FlashcardListQueryInput = z.infer<typeof FlashcardListQuerySchema>;
+
+/**
+ * Validation schema for POST /api/flashcards request body.
+ * Enforces:
+ * - Text length constraints (1-500 characters)
+ * - Source type must be MANUAL
+ * - Optional valid UUID for ai_generation_audit_id
+ */
+export const FlashcardCreateSchema = z.object({
+  front_text: z
+    .string()
+    .min(1, "Front text cannot be empty")
+    .max(500, "Front text must not exceed 500 characters")
+    .trim(),
+  back_text: z
+    .string()
+    .min(1, "Back text cannot be empty")
+    .max(500, "Back text must not exceed 500 characters")
+    .trim(),
+  source_type: z.literal("MANUAL", {
+    errorMap: () => ({ message: "Source type must be MANUAL for manual flashcards" }),
+  }),
+  ai_generation_audit_id: z.string().uuid("Invalid UUID format for ai_generation_audit_id").nullable().optional(),
+});
+
+/**
+ * TypeScript type inferred from the Zod schema.
+ */
+export type FlashcardCreateInput = z.infer<typeof FlashcardCreateSchema>;
+
+/**
+ * Validation schema for DELETE /api/flashcards/{id} request body.
+ * Enforces:
+ * - Optional reason string (max 500 characters)
+ */
+export const FlashcardDeleteSchema = z.object({
+  reason: z
+    .string()
+    .max(500, "Deletion reason must not exceed 500 characters")
+    .optional(),
+});
+
+/**
+ * TypeScript type inferred from the Zod schema.
+ */
+export type FlashcardDeleteInput = z.infer<typeof FlashcardDeleteSchema>;

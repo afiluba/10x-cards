@@ -1,0 +1,10 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MyCardsPage from "../components/my-cards/MyCardsPage";
+
+export const prerender = false;
+---
+
+<Layout title="Biblioteka Fiszek - 10x Cards">
+  <MyCardsPage client:load />
+</Layout>

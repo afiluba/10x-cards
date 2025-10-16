@@ -141,13 +141,18 @@
 
 ### US-010
 - ID: US-010
-- Tytuł: Bezpieczny dostęp do prywatnych fiszek
-- Opis: Jako student chcę logować się do aplikacji przy użyciu własnych danych, aby moje fiszki były prywatne i chronione.
+- Tytuł: Bezpieczny dostęp i uwierzytelnianie
+- Opis: Jako student chcę mieć możliwość rejestracji i logowania się do systemu w sposób zapewniający bezpieczeństwo moich danych.
 - Kryteria akceptacji:
-  - Użytkownik może utworzyć konto (e-mail i hasło) lub otrzymać bezpieczny link dostępu.
-  - Hasła są przechowywane w postaci zaszyfrowanej, a sesje wygasają po określonym czasie bezczynności.
-  - Po zalogowaniu użytkownik ma dostęp wyłącznie do własnych fiszek.
-  - Wylogowanie czyści dane sesji po stronie klienta i serwera.
+  - Logowanie i rejestracja odbywają się na dedykowanych stronach.
+  - Logowanie wymaga podania adresu email i hasła.
+  - Rejestracja wymaga podania adresu email, hasła i potwierdzenia hasła.
+  - Użytkownik NIE MOŻE korzystać praktycznie z zadnych funkcji systemu bez zalogowania się.
+  - Uzytkownik MOZE wyswietlic strone główną (index) przed zalogowaniem.
+  - Użytkownik może logować się do systemu poprzez przycisk w prawym górnym rogu.
+  - Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @Layout.astro.
+  - Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
+  - Odzyskiwanie hasła powinno być możliwe.
 
 ### US-011
 - ID: US-011

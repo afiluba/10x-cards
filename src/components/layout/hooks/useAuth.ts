@@ -68,25 +68,36 @@ export function useAuth(options: UseAuthOptions = {}) {
   /**
    * Registers a new user with email and password.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const register = useCallback(async (email: string, _password: string) => {
+  const register = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Mock implementation - replace with API call when endpoint is available
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // Mock successful registration
-      const mockUser: UserDTO = {
-        id: `user_${Date.now()}`,
-        email,
-        avatar_url: undefined,
-        created_at: new Date().toISOString(),
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.error?.message || "Błąd rejestracji";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      // For registration, we don't set user state immediately
+      // User needs to confirm email first, then login
+      // But we return the response data for component handling
+      return {
+        user: data.user,
+        message: data.message,
+        email_confirmation_required: data.email_confirmation_required,
       };
-
-      setUser(mockUser);
-      return { user: mockUser };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Błąd rejestracji";
       setError(errorMessage);

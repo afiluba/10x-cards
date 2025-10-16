@@ -1,48 +1,66 @@
 import { useState, useCallback } from "react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { registerSchema, type RegisterInput } from "@/lib/schemas/auth.schemas";
 import { toast } from "sonner";
-
-interface RegisterFormProps {
-  onRegister?: (data: RegisterInput) => Promise<void>;
-  isLoading?: boolean;
-}
+import { useAuth } from "@/components/layout/hooks/useAuth";
 
 /**
  * Registration form component with email, password, confirm password fields and terms acceptance.
  * Provides validation, error handling, and navigation link to login.
+ * Uses useAuth hook for registration functionality.
  */
-export function RegisterForm({ onRegister, isLoading = false }: RegisterFormProps) {
+export function RegisterForm() {
+  const { register, isLoading } = useAuth();
   const [formData, setFormData] = useState<RegisterInput>({
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
-  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState<boolean>(false);
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterInput, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateField = useCallback((name: keyof RegisterInput, value: string) => {
-    try {
-      const fieldSchema = registerSchema.pick({ [name]: true });
-      fieldSchema.parse({ [name]: value });
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-      return true;
-    } catch (error: any) {
-      const message = error.errors?.[0]?.message || "Błąd walidacji";
-      setErrors(prev => ({ ...prev, [name]: message }));
-      return false;
-    }
-  }, []);
+  // Create a schema for individual field validation (without cross-field refine validation)
+  const fieldValidationSchema = z.object({
+    email: z.string().email("Nieprawidłowy format email").trim(),
+    password: z.string().min(8, "Hasło musi mieć minimum 8 znaków"),
+    confirmPassword: z.string().min(8, "Hasło musi mieć minimum 8 znaków"),
+  });
 
-  const handleInputChange = (name: keyof RegisterInput) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const validateField = useCallback(
+    (name: keyof RegisterInput, value: string) => {
+      try {
+        // Validate individual field using Zod schema
+        const fieldSchema = fieldValidationSchema.shape[name];
+        fieldSchema.parse(value);
+
+        // For confirmPassword, also check if it matches password (cross-field validation)
+        if (name === "confirmPassword" && formData.password && value !== formData.password) {
+          setErrors((prev) => ({ ...prev, [name]: "Hasła nie są identyczne" }));
+          return false;
+        }
+
+        // Clear error for this field
+        setErrors((prev) => ({ ...prev, [name]: undefined }));
+        return true;
+      } catch (error: unknown) {
+        // Handle Zod validation errors
+        const zodError = error as { errors?: { message: string }[] };
+        const message = zodError.errors?.[0]?.message || "Błąd walidacji";
+        setErrors((prev) => ({ ...prev, [name]: message }));
+        return false;
+      }
+    },
+    [formData.password, fieldValidationSchema.shape]
+  );
+
+  const handleInputChange = (name: keyof RegisterInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Real-time validation
     validateField(name, value);
@@ -59,9 +77,10 @@ export function RegisterForm({ onRegister, isLoading = false }: RegisterFormProp
       }
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const fieldErrors: Partial<Record<keyof RegisterInput, string>> = {};
-      error.errors?.forEach((err: any) => {
+      const zodError = error as { errors?: { path?: string[]; message: string }[] };
+      zodError.errors?.forEach((err) => {
         const field = err.path?.[0] as keyof RegisterInput;
         if (field) {
           fieldErrors[field] = err.message;
@@ -81,16 +100,24 @@ export function RegisterForm({ onRegister, isLoading = false }: RegisterFormProp
 
     setIsSubmitting(true);
     try {
-      if (onRegister) {
-        await onRegister(formData);
+      const result = await register(formData.email, formData.password);
+
+      // Show success message based on registration result
+      if (result.email_confirmation_required) {
+        toast.success(result.message || "Rejestracja udana! Sprawdź email w celu weryfikacji.");
       } else {
-        // Mock registration for UI development
-        toast.success("Rejestracja udana! Sprawdź email w celu weryfikacji.");
-        console.log("Registration attempt:", formData);
+        toast.success("Rejestracja udana!");
       }
-    } catch (error) {
-      toast.error("Błąd rejestracji. Spróbuj ponownie.");
-      console.error("Registration error:", error);
+
+      // Clear form after successful registration
+      setFormData({
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setAcceptTerms(false);
+    } catch {
+      // Error handling is already done in useAuth hook
     } finally {
       setIsSubmitting(false);
     }
@@ -161,7 +188,7 @@ export function RegisterForm({ onRegister, isLoading = false }: RegisterFormProp
         <Checkbox
           id="accept-terms"
           checked={acceptTerms}
-          onCheckedChange={setAcceptTerms}
+          onCheckedChange={(checked) => setAcceptTerms(checked === true)}
           disabled={loading}
           className="mt-1"
         />
@@ -197,10 +224,7 @@ export function RegisterForm({ onRegister, isLoading = false }: RegisterFormProp
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           Masz już konto?{" "}
-          <a
-            href="/auth/login"
-            className="text-primary hover:text-primary/80 transition-colors underline"
-          >
+          <a href="/auth/login" className="text-primary hover:text-primary/80 transition-colors underline">
             Zaloguj się
           </a>
         </p>

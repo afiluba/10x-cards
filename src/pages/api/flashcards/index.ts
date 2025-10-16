@@ -76,11 +76,8 @@ export async function GET(context: APIContext): Promise<Response> {
     }
 
     // 2. Get authenticated user ID
-    // TODO: Replace with actual auth from context.locals.user once authentication is implemented
-    const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
-
-    // Check authentication (placeholder for future implementation)
-    if (!STATIC_USER_ID) {
+    const user = context.locals.user;
+    if (!user) {
       return createErrorResponse("UNAUTHORIZED", "Authentication required", 401);
     }
 
@@ -140,7 +137,7 @@ export async function GET(context: APIContext): Promise<Response> {
     // }
 
     // 6. Call service layer to fetch flashcards
-    const result = await listFlashcards(supabase, STATIC_USER_ID, validatedQuery as FlashcardListQueryCommand);
+    const result = await listFlashcards(supabase, user.id, validatedQuery as FlashcardListQueryCommand);
 
     // 7. Return successful response
     return new Response(JSON.stringify(result), {
@@ -208,11 +205,8 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     // 2. Get authenticated user ID
-    // TODO: Replace with actual auth from context.locals.user once authentication is implemented
-    const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
-
-    // Check authentication (placeholder for future implementation)
-    if (!STATIC_USER_ID) {
+    const user = context.locals.user;
+    if (!user) {
       return createErrorResponse("UNAUTHORIZED", "Authentication required", 401);
     }
 
@@ -233,7 +227,7 @@ export async function POST(context: APIContext): Promise<Response> {
     const validatedCommand = validationResult.data;
 
     // 4. Call service layer to create flashcard
-    const result = await createFlashcard(supabase, STATIC_USER_ID, validatedCommand as FlashcardCreateCommand);
+    const result = await createFlashcard(supabase, user.id, validatedCommand as FlashcardCreateCommand);
 
     // 5. Return successful response
     return new Response(JSON.stringify(result), {

@@ -1,18 +1,7 @@
 import type { APIContext } from "astro";
-import {
-  FlashcardDeleteSchema,
-  FlashcardUpdateSchema,
-} from "../../../lib/schemas/flashcard.schemas";
-import {
-  deleteFlashcard,
-  updateFlashcard,
-} from "../../../lib/services/flashcard.service";
-import type {
-  ErrorResponseDTO,
-  FlashcardDeleteCommand,
-  FlashcardUpdateCommand,
-  FlashcardDTO,
-} from "../../../types";
+import { FlashcardDeleteSchema, FlashcardUpdateSchema } from "../../../lib/schemas/flashcard.schemas";
+import { deleteFlashcard, updateFlashcard } from "../../../lib/services/flashcard.service";
+import type { ErrorResponseDTO, FlashcardDeleteCommand, FlashcardUpdateCommand, FlashcardDTO } from "../../../types";
 
 export const prerender = false;
 
@@ -83,11 +72,8 @@ export async function DELETE(context: APIContext): Promise<Response> {
     }
 
     // 2. Get authenticated user ID
-    // TODO: Replace with actual auth from context.locals.user once authentication is implemented
-    const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
-
-    // Check authentication (placeholder for future implementation)
-    if (!STATIC_USER_ID) {
+    const user = context.locals.user;
+    if (!user) {
       return createErrorResponse("UNAUTHORIZED", "Authentication required", 401);
     }
 
@@ -121,7 +107,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
     }
 
     // 5. Call service layer to delete flashcard
-    const result = await deleteFlashcard(supabase, STATIC_USER_ID, id, deleteCommand as FlashcardDeleteCommand);
+    const result = await deleteFlashcard(supabase, user.id, id, deleteCommand as FlashcardDeleteCommand);
 
     // 6. Return successful response
     return new Response(JSON.stringify(result), {
@@ -193,11 +179,8 @@ export async function PATCH(context: APIContext): Promise<Response> {
     }
 
     // 2. Get authenticated user ID
-    // TODO: Replace with actual auth from context.locals.user once authentication is implemented
-    const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
-
-    // Check authentication (placeholder for future implementation)
-    if (!STATIC_USER_ID) {
+    const user = context.locals.user;
+    if (!user) {
       return createErrorResponse("UNAUTHORIZED", "Authentication required", 401);
     }
 
@@ -229,7 +212,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
     }
 
     // 6. Call service layer to update flashcard
-    const result = await updateFlashcard(supabase, STATIC_USER_ID, id, validatedCommand as FlashcardUpdateCommand);
+    const result = await updateFlashcard(supabase, user.id, id, validatedCommand as FlashcardUpdateCommand);
 
     // 7. Return successful response
     return new Response(JSON.stringify(result), {

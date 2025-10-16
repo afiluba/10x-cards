@@ -104,17 +104,14 @@ export async function POST(context: APIContext): Promise<Response> {
   }
 
   // 3. Get authenticated user ID
-  // TODO: Replace with actual auth from context.locals.user once authentication is implemented
-  const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
-
-  // Check authentication (placeholder for future implementation)
-  if (!STATIC_USER_ID) {
+  const user = context.locals.user;
+  if (!user) {
     return createErrorResponse("UNAUTHORIZED", "Authentication required", 401);
   }
 
   // 4. Call flashcard service to save batch
   try {
-    const result = await saveBatchFlashcards(context.locals.supabase, STATIC_USER_ID, validatedData);
+    const result = await saveBatchFlashcards(context.locals.supabase, user.id, validatedData);
 
     // 5. Return successful response
     return new Response(JSON.stringify(result), {

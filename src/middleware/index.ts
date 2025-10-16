@@ -52,24 +52,27 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   context.locals.supabase = supabase;
 
+  // Always get user session to provide user context to navigation
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    // eslint-disable-next-line no-console
+    console.log(`✅ User authenticated: ${user.email}`);
+    context.locals.user = {
+      email: user.email!,
+      id: user.id,
+      created_at: user.created_at,
+    };
+  }
+
   // Check if this path requires authentication
   if (requiresAuth(context.url.pathname)) {
     // eslint-disable-next-line no-console
     console.log(`🔒 Protected path detected: ${context.url.pathname}`);
-    // IMPORTANT: Always get user session first before any other operations
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
-    if (user) {
-      // eslint-disable-next-line no-console
-      console.log(`✅ User authenticated: ${user.email}`);
-      context.locals.user = {
-        email: user.email!,
-        id: user.id,
-        created_at: user.created_at,
-      };
-    } else {
+    if (!user) {
       // eslint-disable-next-line no-console
       console.log(`❌ User not authenticated, redirecting to login`);
       // Redirect to login for protected routes

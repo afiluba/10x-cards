@@ -42,7 +42,7 @@ function createErrorResponse(
  * POST /api/ai-generation/sessions
  *
  * Creates a new AI generation session and returns mock flashcard proposals.
- * Currently uses a static user ID for testing (authentication will be added later).
+ * Requires user authentication.
  *
  * Request body:
  * - input_text: string (1000-32768 characters)
@@ -91,12 +91,15 @@ export async function POST(context: APIContext): Promise<Response> {
     return createErrorResponse("INTERNAL_ERROR", "An unexpected error occurred during validation", 500);
   }
 
-  // 3. Use static embedded user ID for testing (authentication will be added later)
-  const STATIC_USER_ID = "c2f5729e-cdce-4bab-9bf3-0c7da839d9fd";
+  // 3. Get authenticated user ID
+  const user = context.locals.user;
+  if (!user) {
+    return createErrorResponse("UNAUTHORIZED", "Authentication required", 401);
+  }
 
   // 4. Call AI generation service
   try {
-    const result = await createAiGenerationSession(context.locals.supabase, STATIC_USER_ID, validatedData);
+    const result = await createAiGenerationSession(context.locals.supabase, user.id, validatedData);
 
     // 5. Return successful response
     return new Response(JSON.stringify(result), {

@@ -109,13 +109,8 @@ export function RegisterForm() {
         toast.success("Rejestracja udana!");
       }
 
-      // Clear form after successful registration
-      setFormData({
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
-      setAcceptTerms(false);
+      // Redirect to login page after successful registration
+      window.location.href = "/auth/login";
     } catch {
       // Error handling is already done in useAuth hook
     } finally {

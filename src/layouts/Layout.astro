@@ -1,12 +1,14 @@
 ---
 import "../styles/global.css";
 import { Toaster } from "../components/ui/sonner";
+import { TopNavbarWrapper } from "../components/layout/TopNavbarWrapper";
 
 interface Props {
   title?: string;
 }
 
 const { title = "10x Astro Starter" } = Astro.props;
+const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -19,6 +21,7 @@ const { title = "10x Astro Starter" } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
+    <TopNavbarWrapper currentPath={currentPath} client:load />
     <slot />
     <Toaster client:load />
   </body>

@@ -207,3 +207,32 @@ export interface ErrorDTO {
 export interface ErrorResponseDTO {
   error: ErrorDTO;
 }
+
+/**
+ * User data transfer object for authenticated user information.
+ * Based on Supabase Auth User object with selected fields.
+ */
+export interface UserDTO {
+  id: string;
+  email: string;
+  avatar_url?: string;
+  created_at: string;
+}
+
+/**
+ * Structure of a single navigation item for the TopNavbar component.
+ */
+export interface NavigationItem {
+  label: string;        // Display label ("Generuj fiszki", "Moje fiszki")
+  path: string;         // URL path ("/generate", "/my-cards")
+  isActive: boolean;    // Whether the item is currently active
+}
+
+/**
+ * Props for the main TopNavbar component.
+ */
+export interface TopNavbarProps {
+  user?: UserDTO;              // Data of the logged-in user
+  currentPath: string;         // Current URL path for active link highlighting
+  onLogout?: () => void;       // Callback invoked on logout
+}

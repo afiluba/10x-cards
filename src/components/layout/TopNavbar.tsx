@@ -2,6 +2,7 @@ import type { TopNavbarProps, NavigationItem } from "../../types";
 import { Logo } from "./Logo";
 import { NavigationLinks } from "./NavigationLinks";
 import { UserMenu } from "./UserMenu";
+import { Button } from "../ui/button";
 
 /**
  * Main navigation component for the 10x-cards application.
@@ -37,12 +38,16 @@ export function TopNavbar({ user, currentPath, onLogout }: TopNavbarProps) {
         {/* Navigation Links */}
         <NavigationLinks items={navigationItems} />
 
-        {/* User Menu - only shown when user is authenticated */}
-        {user && (
-          <div className="ml-auto">
+        {/* User Menu or Login Button */}
+        <div className="ml-auto">
+          {user ? (
             <UserMenu user={user} onLogout={onLogout} />
-          </div>
-        )}
+          ) : (
+            <Button asChild variant="ghost" size="sm">
+              <a href="/auth/login">Zaloguj się</a>
+            </Button>
+          )}
+        </div>
       </div>
     </nav>
   );

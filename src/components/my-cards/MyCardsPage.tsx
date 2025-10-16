@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { StatsPanel } from "./StatsPanel";
 import { FiltersPanel } from "./FiltersPanel";
 import { AddFlashcardButton } from "./AddFlashcardButton";
 import { FlashcardGrid } from "./FlashcardGrid";
@@ -14,7 +13,6 @@ import { toast } from "sonner";
 const MyCardsPage: React.FC = () => {
   const {
     flashcards,
-    stats,
     filters,
     pagination,
     isLoading,
@@ -86,7 +84,7 @@ const MyCardsPage: React.FC = () => {
   };
 
   const handleConfirmDelete = async () => {
-    const flashcardToDelete = flashcards.find(f => f.isDeleting);
+    const flashcardToDelete = flashcards.find((f) => f.isDeleting);
     if (!flashcardToDelete) return;
 
     try {
@@ -100,7 +98,7 @@ const MyCardsPage: React.FC = () => {
   };
 
   const handleCancelDelete = () => {
-    const flashcardToDelete = flashcards.find(f => f.isDeleting);
+    const flashcardToDelete = flashcards.find((f) => f.isDeleting);
     if (flashcardToDelete) {
       stopDeletingFlashcard(flashcardToDelete.id);
     }
@@ -126,16 +124,13 @@ const MyCardsPage: React.FC = () => {
   if (error && flashcards.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-red-600">
-          Błąd: {error}
-        </div>
+        <div className="text-center text-red-600">Błąd: {error}</div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
-      <StatsPanel stats={stats} />
       <FiltersPanel filters={filters} onFiltersChange={handleFiltersChange} />
       <AddFlashcardButton onOpenModal={handleOpenCreateModal} />
       <FlashcardGrid
@@ -153,8 +148,8 @@ const MyCardsPage: React.FC = () => {
         onSubmit={handleCreateFlashcard}
       />
       <DeleteFlashcardModal
-        isOpen={flashcards.some(f => f.isDeleting)}
-        flashcard={flashcards.find(f => f.isDeleting) || null}
+        isOpen={flashcards.some((f) => f.isDeleting)}
+        flashcard={flashcards.find((f) => f.isDeleting) || null}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
       />

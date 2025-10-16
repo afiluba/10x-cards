@@ -3,23 +3,19 @@ import type {
   FlashcardListResponseDTO,
   FlashcardDTO,
   FlashcardCreateCommand,
+  FlashcardUpdateCommand,
   FlashcardDeleteResponseDTO,
   FlashcardListQueryCommand,
+  FlashcardSourceType,
+  FlashcardSortParam,
 } from "../../../types";
 
 // ViewModel types
-interface StatsViewModel {
-  totalCards: number;
-  aiOriginalCount: number;
-  aiEditedCount: number;
-  manualCount: number;
-  aiAcceptanceRate: number;
-}
 
 interface FiltersViewModel {
   search: string;
-  sourceType: string[];
-  sort: string;
+  sourceType: FlashcardSourceType[];
+  sort: FlashcardSortParam;
   page: number;
   pageSize: number;
 }
@@ -40,7 +36,6 @@ interface FlashcardViewModel extends FlashcardDTO {
 interface UseFlashcardsStateReturn {
   // State
   flashcards: FlashcardViewModel[];
-  stats: StatsViewModel;
   filters: FiltersViewModel;
   pagination: PaginationViewModel;
   isLoading: boolean;
@@ -65,13 +60,6 @@ interface UseFlashcardsStateReturn {
 export const useFlashcardsState = (): UseFlashcardsStateReturn => {
   // State
   const [flashcards, setFlashcards] = useState<FlashcardViewModel[]>([]);
-  const [stats, setStats] = useState<StatsViewModel>({
-    totalCards: 0,
-    aiOriginalCount: 0,
-    aiEditedCount: 0,
-    manualCount: 0,
-    aiAcceptanceRate: 0,
-  });
   const [filters, setFilters] = useState<FiltersViewModel>({
     search: "",
     sourceType: [],
@@ -88,24 +76,6 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate stats from flashcards data
-  const calculateStats = useCallback((flashcardsData: FlashcardDTO[]): StatsViewModel => {
-    const totalCards = flashcardsData.length;
-    const aiOriginalCount = flashcardsData.filter(f => f.source_type === "AI_ORIGINAL").length;
-    const aiEditedCount = flashcardsData.filter(f => f.source_type === "AI_EDITED").length;
-    const manualCount = flashcardsData.filter(f => f.source_type === "MANUAL").length;
-    const aiTotal = aiOriginalCount + aiEditedCount;
-    const aiAcceptanceRate = aiTotal > 0 ? (aiEditedCount / aiTotal) * 100 : 0;
-
-    return {
-      totalCards,
-      aiOriginalCount,
-      aiEditedCount,
-      manualCount,
-      aiAcceptanceRate: Math.round(aiAcceptanceRate * 100) / 100, // Round to 2 decimal places
-    };
-  }, []);
-
   // Fetch flashcards from API
   const fetchFlashcards = useCallback(async (query: FlashcardListQueryCommand) => {
     setIsLoading(true);
@@ -117,7 +87,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
       if (query.page && query.page > 1) queryParams.append("page", query.page.toString());
       if (query.page_size && query.page_size !== 20) queryParams.append("page_size", query.page_size.toString());
       if (query.source_type && query.source_type.length > 0) {
-        query.source_type.forEach(type => queryParams.append("source_type", type));
+        query.source_type.forEach((type) => queryParams.append("source_type", type));
       }
       if (query.updated_after) queryParams.append("updated_after", query.updated_after);
       if (query.include_deleted) queryParams.append("include_deleted", "true");
@@ -134,7 +104,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
       const data: FlashcardListResponseDTO = await response.json();
 
       // Transform to view models with additional state
-      const viewModels: FlashcardViewModel[] = data.data.map(card => ({
+      const viewModels: FlashcardViewModel[] = data.data.map((card) => ({
         ...card,
         isFlipped: false,
         isEditing: false,
@@ -142,7 +112,6 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
       }));
 
       setFlashcards(viewModels);
-      setStats(calculateStats(data.data));
       setPagination({
         currentPage: data.pagination.page,
         totalPages: data.pagination.total_pages,
@@ -156,59 +125,62 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [calculateStats]);
+  }, []);
 
   // Update filters and refetch
-  const updateFilters = useCallback((newFilters: Partial<FiltersViewModel>) => {
-    setFilters(prev => {
-      const updated = { ...prev, ...newFilters };
-      // Reset to page 1 when filters change
-      if (newFilters.search !== undefined || newFilters.sourceType !== undefined) {
-        updated.page = 1;
+  const updateFilters = useCallback(
+    (newFilters: Partial<FiltersViewModel>) => {
+      setFilters((prev) => {
+        const updated = { ...prev, ...newFilters };
+        // Reset to page 1 when filters change
+        if (newFilters.search !== undefined || newFilters.sourceType !== undefined) {
+          updated.page = 1;
+        }
+        return updated;
+      });
+
+      // Update URL with new filters
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        const updated = { ...filters, ...newFilters };
+
+        // Update search params
+        if (updated.search && updated.search.trim()) {
+          url.searchParams.set("search", updated.search);
+        } else {
+          url.searchParams.delete("search");
+        }
+
+        if (updated.sourceType && updated.sourceType.length > 0) {
+          updated.sourceType.forEach((type) => url.searchParams.append("source_type", type));
+        } else {
+          url.searchParams.delete("source_type");
+        }
+
+        if (updated.sort && updated.sort !== "created_at:desc") {
+          url.searchParams.set("sort", updated.sort);
+        } else {
+          url.searchParams.delete("sort");
+        }
+
+        if (updated.page && updated.page > 1) {
+          url.searchParams.set("page", updated.page.toString());
+        } else {
+          url.searchParams.delete("page");
+        }
+
+        if (updated.pageSize && updated.pageSize !== 20) {
+          url.searchParams.set("page_size", updated.pageSize.toString());
+        } else {
+          url.searchParams.delete("page_size");
+        }
+
+        // Update URL without triggering a page reload
+        window.history.replaceState({}, "", url.toString());
       }
-      return updated;
-    });
-
-    // Update URL with new filters
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      const updated = { ...filters, ...newFilters };
-
-      // Update search params
-      if (updated.search && updated.search.trim()) {
-        url.searchParams.set('search', updated.search);
-      } else {
-        url.searchParams.delete('search');
-      }
-
-      if (updated.sourceType && updated.sourceType.length > 0) {
-        updated.sourceType.forEach(type => url.searchParams.append('source_type', type));
-      } else {
-        url.searchParams.delete('source_type');
-      }
-
-      if (updated.sort && updated.sort !== 'created_at:desc') {
-        url.searchParams.set('sort', updated.sort);
-      } else {
-        url.searchParams.delete('sort');
-      }
-
-      if (updated.page && updated.page > 1) {
-        url.searchParams.set('page', updated.page.toString());
-      } else {
-        url.searchParams.delete('page');
-      }
-
-      if (updated.pageSize && updated.pageSize !== 20) {
-        url.searchParams.set('page_size', updated.pageSize.toString());
-      } else {
-        url.searchParams.delete('page_size');
-      }
-
-      // Update URL without triggering a page reload
-      window.history.replaceState({}, '', url.toString());
-    }
-  }, [filters]);
+    },
+    [filters]
+  );
 
   // Create flashcard
   const createFlashcardApi = useCallback(async (command: FlashcardCreateCommand): Promise<FlashcardDTO> => {
@@ -265,142 +237,126 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
   }, []);
 
   // Create flashcard wrapper
-  const createFlashcard = useCallback(async (command: FlashcardCreateCommand): Promise<FlashcardDTO> => {
-    try {
-      const newCard = await createFlashcardApi(command);
+  const createFlashcard = useCallback(
+    async (command: FlashcardCreateCommand): Promise<FlashcardDTO> => {
+      try {
+        const newCard = await createFlashcardApi(command);
 
-      // Add to local state (optimistic update)
-      const newViewModel: FlashcardViewModel = {
-        ...newCard,
-        isFlipped: false,
-        isEditing: false,
-        isDeleting: false,
-      };
+        // Add to local state (optimistic update)
+        const newViewModel: FlashcardViewModel = {
+          ...newCard,
+          isFlipped: false,
+          isEditing: false,
+          isDeleting: false,
+        };
 
-      setFlashcards(prev => [newViewModel, ...prev]);
-      setStats(prev => calculateStats([newCard, ...flashcards.map(f => ({ ...f }))]));
+        setFlashcards((prev) => [newViewModel, ...prev]);
 
-      return newCard;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to create flashcard";
-      setError(errorMessage);
-      throw err;
-    }
-  }, [createFlashcardApi, calculateStats, flashcards]);
+        return newCard;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to create flashcard";
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [createFlashcardApi, flashcards]
+  );
 
   // Update flashcard wrapper
-  const updateFlashcard = useCallback(async (id: string, command: FlashcardUpdateCommand): Promise<FlashcardDTO> => {
-    try {
-      const updatedCard = await updateFlashcardApi(id, command);
+  const updateFlashcard = useCallback(
+    async (id: string, command: FlashcardUpdateCommand): Promise<FlashcardDTO> => {
+      try {
+        const updatedCard = await updateFlashcardApi(id, command);
 
-      // Update local state (optimistic update)
-      setFlashcards(prev => prev.map(card =>
-        card.id === id
-          ? { ...updatedCard, isFlipped: card.isFlipped, isEditing: false, isDeleting: card.isDeleting }
-          : card
-      ));
+        // Update local state (optimistic update)
+        setFlashcards((prev) =>
+          prev.map((card) =>
+            card.id === id
+              ? { ...updatedCard, isFlipped: card.isFlipped, isEditing: false, isDeleting: card.isDeleting }
+              : card
+          )
+        );
 
-      // Update stats if source_type changed
-      if (command.source_type) {
-        setStats(prev => calculateStats(flashcards.map(f =>
-          f.id === id ? { ...updatedCard } : { ...f }
-        )));
+        return updatedCard;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to update flashcard";
+        setError(errorMessage);
+        throw err;
       }
-
-      return updatedCard;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update flashcard";
-      setError(errorMessage);
-      throw err;
-    }
-  }, [updateFlashcardApi, calculateStats, flashcards]);
+    },
+    [updateFlashcardApi, flashcards]
+  );
 
   // Delete flashcard wrapper
-  const deleteFlashcard = useCallback(async (id: string, reason?: string): Promise<FlashcardDeleteResponseDTO> => {
-    try {
-      const result = await deleteFlashcardApi(id, reason);
+  const deleteFlashcard = useCallback(
+    async (id: string, reason?: string): Promise<FlashcardDeleteResponseDTO> => {
+      try {
+        const result = await deleteFlashcardApi(id, reason);
 
-      // Remove from local state (optimistic update)
-      setFlashcards(prev => prev.filter(f => f.id !== id));
-      setStats(prev => calculateStats(flashcards.filter(f => f.id !== id).map(f => ({ ...f }))));
+        // Remove from local state (optimistic update)
+        setFlashcards((prev) => prev.filter((f) => f.id !== id));
 
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete flashcard";
-      setError(errorMessage);
-      throw err;
-    }
-  }, [deleteFlashcardApi, calculateStats, flashcards]);
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to delete flashcard";
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [deleteFlashcardApi, flashcards]
+  );
 
   // Local state management functions
   const flipFlashcard = useCallback((id: string) => {
-    setFlashcards(prev =>
-      prev.map(card =>
-        card.id === id ? { ...card, isFlipped: !card.isFlipped } : card
-      )
-    );
+    setFlashcards((prev) => prev.map((card) => (card.id === id ? { ...card, isFlipped: !card.isFlipped } : card)));
   }, []);
 
   const startEditingFlashcard = useCallback((id: string) => {
-    setFlashcards(prev =>
-      prev.map(card =>
-        card.id === id ? { ...card, isEditing: true } : { ...card, isEditing: false }
-      )
+    setFlashcards((prev) =>
+      prev.map((card) => (card.id === id ? { ...card, isEditing: true } : { ...card, isEditing: false }))
     );
   }, []);
 
   const stopEditingFlashcard = useCallback((id: string) => {
-    setFlashcards(prev =>
-      prev.map(card =>
-        card.id === id ? { ...card, isEditing: false } : card
-      )
-    );
+    setFlashcards((prev) => prev.map((card) => (card.id === id ? { ...card, isEditing: false } : card)));
   }, []);
 
   const startDeletingFlashcard = useCallback((id: string) => {
-    setFlashcards(prev =>
-      prev.map(card =>
-        card.id === id ? { ...card, isDeleting: true } : card
-      )
-    );
+    setFlashcards((prev) => prev.map((card) => (card.id === id ? { ...card, isDeleting: true } : card)));
   }, []);
 
   const stopDeletingFlashcard = useCallback((id: string) => {
-    setFlashcards(prev =>
-      prev.map(card =>
-        card.id === id ? { ...card, isDeleting: false } : card
-      )
-    );
+    setFlashcards((prev) => prev.map((card) => (card.id === id ? { ...card, isDeleting: false } : card)));
   }, []);
 
   // Initialize filters from URL on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       const searchParams = url.searchParams;
 
       const urlFilters: Partial<FiltersViewModel> = {};
 
       // Parse search
-      const search = searchParams.get('search');
+      const search = searchParams.get("search");
       if (search) {
         urlFilters.search = search;
       }
 
       // Parse source types
-      const sourceTypes = searchParams.getAll('source_type');
+      const sourceTypes = searchParams.getAll("source_type");
       if (sourceTypes.length > 0) {
-        urlFilters.sourceType = sourceTypes;
+        urlFilters.sourceType = sourceTypes as FlashcardSourceType[];
       }
 
       // Parse sort
-      const sort = searchParams.get('sort');
-      if (sort && ['created_at:asc', 'created_at:desc', 'updated_at:asc', 'updated_at:desc'].includes(sort)) {
-        urlFilters.sort = sort;
+      const sort = searchParams.get("sort");
+      if (sort && ["created_at:asc", "created_at:desc", "updated_at:asc", "updated_at:desc"].includes(sort)) {
+        urlFilters.sort = sort as FlashcardSortParam;
       }
 
       // Parse page
-      const page = searchParams.get('page');
+      const page = searchParams.get("page");
       if (page) {
         const pageNum = parseInt(page, 10);
         if (!isNaN(pageNum) && pageNum >= 1) {
@@ -409,7 +365,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
       }
 
       // Parse page_size
-      const pageSize = searchParams.get('page_size');
+      const pageSize = searchParams.get("page_size");
       if (pageSize) {
         const sizeNum = parseInt(pageSize, 10);
         if (!isNaN(sizeNum) && [10, 20, 50, 100].includes(sizeNum)) {
@@ -419,7 +375,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
 
       // Apply URL filters if any were found
       if (Object.keys(urlFilters).length > 0) {
-        setFilters(prev => ({ ...prev, ...urlFilters }));
+        setFilters((prev) => ({ ...prev, ...urlFilters }));
       }
     }
   }, []); // Only run on mount
@@ -437,7 +393,6 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
 
   return {
     flashcards,
-    stats,
     filters,
     pagination,
     isLoading,

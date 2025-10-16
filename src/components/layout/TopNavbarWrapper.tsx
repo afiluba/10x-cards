@@ -1,16 +1,18 @@
 import { TopNavbar } from "./TopNavbar";
 import { useAuth } from "./hooks/useAuth";
+import type { UserDTO } from "../../types";
 
 interface TopNavbarWrapperProps {
   currentPath: string;
+  user?: UserDTO;
 }
 
 /**
  * Wrapper component for TopNavbar that handles authentication logic.
  * This component can be used in Astro layouts to provide navigation with user context.
  */
-export function TopNavbarWrapper({ currentPath }: TopNavbarWrapperProps) {
-  const { user, logout } = useAuth();
+export function TopNavbarWrapper({ currentPath, user }: TopNavbarWrapperProps) {
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     try {

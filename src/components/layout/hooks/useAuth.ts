@@ -143,19 +143,68 @@ export function useAuth(options: UseAuthOptions = {}) {
   }, []);
 
   /**
+   * Updates user password using reset token.
+   */
+  const updatePassword = useCallback(async (password: string, token?: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/auth/update-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password, token }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.error?.message || "Błąd aktualizacji hasła";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      // Update user state with new user data
+      setUser(data.user);
+      setError(null);
+
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Błąd aktualizacji hasła";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  /**
    * Sends a password reset email.
    */
   const resetPassword = useCallback(async (email: string) => {
     setError(null);
 
     try {
-      // Mock implementation - replace with API call when endpoint is available
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API delay
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
-      // Mock successful password reset email sent
-      // In real implementation, this would send an email
-      // eslint-disable-next-line no-console
-      console.log(`Mock: Password reset email sent to ${email}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.error?.message || "Błąd wysyłania emaila resetowania";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Błąd wysyłania emaila resetowania";
       setError(errorMessage);
@@ -172,6 +221,7 @@ export function useAuth(options: UseAuthOptions = {}) {
     register,
     logout,
     resetPassword,
+    updatePassword,
     checkSession,
   };
 }

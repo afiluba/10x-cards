@@ -2,13 +2,16 @@ import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { resetPasswordRequestSchema, updatePasswordSchema, type ResetPasswordRequestInput, type UpdatePasswordInput } from "@/lib/schemas/auth.schemas";
+import {
+  resetPasswordRequestSchema,
+  updatePasswordSchema,
+  type ResetPasswordRequestInput,
+  type UpdatePasswordInput,
+} from "@/lib/schemas/auth.schemas";
 import { toast } from "sonner";
+import { useAuth } from "@/components/layout/hooks/useAuth";
 
 interface ResetPasswordFormProps {
-  onRequestReset?: (data: ResetPasswordRequestInput) => Promise<void>;
-  onUpdatePassword?: (data: UpdatePasswordInput) => Promise<void>;
-  isLoading?: boolean;
   resetToken?: string | null;
 }
 
@@ -16,21 +19,17 @@ interface ResetPasswordFormProps {
  * Password reset form component that handles both password reset request and password update.
  * Shows different UI based on whether a reset token is present in URL parameters.
  */
-export function ResetPasswordForm({
-  onRequestReset,
-  onUpdatePassword,
-  isLoading = false,
-  resetToken
-}: ResetPasswordFormProps) {
+export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
+  const { resetPassword, updatePassword, isLoading } = useAuth();
   const isUpdateMode = !!resetToken;
 
   const [requestData, setRequestData] = useState<ResetPasswordRequestInput>({
-    email: ""
+    email: "",
   });
 
   const [updateData, setUpdateData] = useState<UpdatePasswordInput>({
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
@@ -47,11 +46,11 @@ export function ResetPasswordForm({
     try {
       const fieldSchema = schema.pick({ [name]: true });
       fieldSchema.parse({ [name]: value });
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
       return true;
     } catch (error: any) {
       const message = error.errors?.[0]?.message || "Błąd walidacji";
-      setErrors(prev => ({ ...prev, [name]: message }));
+      setErrors((prev) => ({ ...prev, [name]: message }));
       return false;
     }
   }, []);
@@ -83,11 +82,9 @@ export function ResetPasswordForm({
     validateField(resetPasswordRequestSchema, "email", value);
   };
 
-  const handleUpdateInputChange = (name: keyof UpdatePasswordInput) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleUpdateInputChange = (name: keyof UpdatePasswordInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setUpdateData(prev => ({ ...prev, [name]: value }));
+    setUpdateData((prev) => ({ ...prev, [name]: value }));
     validateField(updatePasswordSchema, name, value);
   };
 
@@ -101,27 +98,14 @@ export function ResetPasswordForm({
     setIsSubmitting(true);
     try {
       if (isUpdateMode) {
-        if (onUpdatePassword) {
-          await onUpdatePassword(updateData);
-        } else {
-          // Mock password update for UI development
-          toast.success("Hasło zostało zmienione!");
-          console.log("Password update attempt:", updateData);
-        }
+        await updatePassword(updateData.password, resetToken || undefined);
+        toast.success("Hasło zostało pomyślnie zmienione!");
       } else {
-        if (onRequestReset) {
-          await onRequestReset(requestData);
-        } else {
-          // Mock password reset request for UI development
-          toast.success("Link do resetowania hasła został wysłany na email!");
-          console.log("Password reset request:", requestData);
-        }
+        await resetPassword(requestData.email);
+        toast.success("Link do resetowania hasła został wysłany na email!");
       }
     } catch (error) {
-      const message = isUpdateMode
-        ? "Błąd zmiany hasła. Spróbuj ponownie."
-        : "Błąd wysyłania żądania resetowania hasła.";
-      toast.error(message);
+      // Error handling is already done in useAuth hook
       console.error("Reset password error:", error);
     } finally {
       setIsSubmitting(false);
@@ -135,9 +119,7 @@ export function ResetPasswordForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="text-center mb-6">
           <h2 className="text-lg font-semibold">Ustaw nowe hasło</h2>
-          <p className="text-sm text-muted-foreground">
-            Wprowadź nowe hasło dla swojego konta
-          </p>
+          <p className="text-sm text-muted-foreground">Wprowadź nowe hasło dla swojego konta</p>
         </div>
 
         <div className="space-y-2">
@@ -221,10 +203,7 @@ export function ResetPasswordForm({
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           Pamiętasz hasło?{" "}
-          <a
-            href="/auth/login"
-            className="text-primary hover:text-primary/80 transition-colors underline"
-          >
+          <a href="/auth/login" className="text-primary hover:text-primary/80 transition-colors underline">
             Zaloguj się
           </a>
         </p>

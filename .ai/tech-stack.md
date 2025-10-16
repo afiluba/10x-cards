@@ -15,6 +15,11 @@ AI - Komunikacja z modelami przez usługę Openrouter.ai:
 - Dostęp do szerokiej gamy modeli (OpenAI, Anthropic, Google i wiele innych), które pozwolą nam znaleźć rozwiązanie zapewniające wysoką efektywność i niskie koszta
 - Pozwala na ustawianie limitów finansowych na klucze API
 
+Testowanie:
+- Vitest jako główny framework do testów jednostkowych i integracyjnych, zapewniający szybkie wykonywanie testów z doskonałym wsparciem dla TypeScript
+- React Testing Library do testowania komponentów React, skupiająca się na testowaniu zachowania użytkownika zamiast implementacji
+- Playwright do kompleksowych testów end-to-end, zapewniający niezawodne testy w rzeczywistych przeglądarkach z wsparciem dla wielu przeglądarek i urządzeń
+
 CI/CD i Hosting:
 - Github Actions do tworzenia pipeline’ów CI/CD
 - DigitalOcean do hostowania aplikacji za pośrednictwem obrazu docker

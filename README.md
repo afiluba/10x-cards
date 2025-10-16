@@ -29,6 +29,7 @@
 - **Backend i uwierzytelnianie:** Supabase (PostgreSQL, moduły auth, narzędzia do przechowywania danych).
 - **Integracja AI:** OpenRouter.ai zapewniający dostęp do szerokiego katalogu dostawców modeli LLM.
 - **Narzędzia i CI/CD:** Node.js 22.14.0, npm, ESLint, Prettier, Husky, lint-staged, GitHub Actions, wdrożenia kontenerowe na DigitalOcean.
+- **Testowanie:** Vitest (testy jednostkowe i integracyjne), Playwright (testy E2E), React Testing Library (testy komponentów React).
 - **Biblioteki UI i narzędzia:** @astrojs/node, @astrojs/react, class-variance-authority, clsx, lucide-react, tailwind-merge, tw-animate-css.
 
 ## 4. Uruchomienie lokalne

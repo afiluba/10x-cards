@@ -1,4 +1,5 @@
-import type { supabaseClient } from "../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../../db/database.types";
 import type {
   AiGenerationSessionCreateCommand,
   AiGenerationSessionCreateResponseDTO,
@@ -242,7 +243,7 @@ async function generateFlashcardProposals(
  * @throws Error with specific code for AI errors, database conflicts, or internal errors
  */
 export async function createAiGenerationSession(
-  supabase: typeof supabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   command: AiGenerationSessionCreateCommand
 ): Promise<AiGenerationSessionCreateResponseDTO> {

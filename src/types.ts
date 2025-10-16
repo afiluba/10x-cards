@@ -223,16 +223,107 @@ export interface UserDTO {
  * Structure of a single navigation item for the TopNavbar component.
  */
 export interface NavigationItem {
-  label: string;        // Display label ("Generuj fiszki", "Moje fiszki")
-  path: string;         // URL path ("/generate", "/my-cards")
-  isActive: boolean;    // Whether the item is currently active
+  label: string; // Display label ("Generuj fiszki", "Moje fiszki")
+  path: string; // URL path ("/generate", "/my-cards")
+  isActive: boolean; // Whether the item is currently active
 }
 
 /**
  * Props for the main TopNavbar component.
  */
 export interface TopNavbarProps {
-  user?: UserDTO;              // Data of the logged-in user
-  currentPath: string;         // Current URL path for active link highlighting
-  onLogout?: () => void;       // Callback invoked on logout
+  user?: UserDTO; // Data of the logged-in user
+  currentPath: string; // Current URL path for active link highlighting
+  onLogout?: () => void; // Callback invoked on logout
+}
+
+/**
+ * =================================================================================
+ * AUTHENTICATION API TYPES
+ * =================================================================================
+ */
+
+/**
+ * Login command for authentication API.
+ */
+export interface AuthLoginCommand {
+  email: string;
+  password: string;
+}
+
+/**
+ * Register command for authentication API.
+ */
+export interface AuthRegisterCommand {
+  email: string;
+  password: string;
+}
+
+/**
+ * Reset password command for authentication API.
+ */
+export interface AuthResetPasswordCommand {
+  email: string;
+}
+
+/**
+ * Update password command for authentication API (after token received).
+ */
+export interface AuthUpdatePasswordCommand {
+  password: string;
+  token?: string; // For email-based password reset
+}
+
+/**
+ * Logout command for authentication API.
+ */
+export interface AuthLogoutCommand {
+  // Empty command - logout uses session from cookies
+}
+
+/**
+ * Login response DTO.
+ */
+export interface AuthLoginResponseDTO {
+  user: UserDTO;
+  session: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+  };
+}
+
+/**
+ * Register response DTO.
+ */
+export interface AuthRegisterResponseDTO {
+  user: UserDTO;
+  message: string;
+  email_confirmation_required: boolean;
+}
+
+/**
+ * Reset password response DTO.
+ */
+export interface AuthResetPasswordResponseDTO {
+  message: string;
+}
+
+/**
+ * Update password response DTO.
+ */
+export interface AuthUpdatePasswordResponseDTO {
+  user: UserDTO;
+  session: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+  };
+}
+
+/**
+ * Logout response DTO.
+ */
+export interface AuthLogoutResponseDTO {
+  success: true;
 }

@@ -1,4 +1,5 @@
-import type { supabaseClient } from "../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../../db/database.types";
 import type {
   FlashcardBatchSaveCommand,
   FlashcardBatchSaveResponseDTO,
@@ -6,6 +7,7 @@ import type {
   FlashcardListResponseDTO,
   FlashcardDTO,
   FlashcardCreateCommand,
+  FlashcardUpdateCommand,
   FlashcardDeleteCommand,
   FlashcardDeleteResponseDTO,
   FlashcardSourceType,
@@ -64,7 +66,7 @@ function createError(
  * @throws Error with specific code and status for various validation failures
  */
 export async function saveBatchFlashcards(
-  supabase: typeof supabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   command: FlashcardBatchSaveCommand
 ): Promise<FlashcardBatchSaveResponseDTO> {
@@ -182,7 +184,7 @@ export async function saveBatchFlashcards(
  * @throws Error with specific code and status for validation failures
  */
 export async function createFlashcard(
-  supabase: typeof supabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   command: FlashcardCreateCommand
 ): Promise<FlashcardDTO> {
@@ -258,7 +260,7 @@ export async function createFlashcard(
  * @throws Error with specific code and status for validation failures
  */
 export async function updateFlashcard(
-  supabase: typeof supabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   flashcardId: string,
   command: FlashcardUpdateCommand
@@ -352,7 +354,7 @@ export async function updateFlashcard(
  * @throws Error with specific code and status for various failures
  */
 export async function deleteFlashcard(
-  supabase: typeof supabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   flashcardId: string,
   command: FlashcardDeleteCommand
@@ -404,7 +406,7 @@ export async function deleteFlashcard(
  * @throws Error with specific code and status for various failures
  */
 export async function listFlashcards(
-  supabase: typeof supabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   query: FlashcardListQueryCommand
 ): Promise<FlashcardListResponseDTO> {

@@ -1,45 +1,57 @@
-import { useState, useCallback } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth.schemas";
+import { useAuth } from "@/components/layout/hooks/useAuth";
 import { toast } from "sonner";
-
-interface LoginFormProps {
-  onLogin?: (data: LoginInput) => Promise<void>;
-  isLoading?: boolean;
-}
 
 /**
  * Login form component with email and password fields.
  * Provides validation, error handling, and navigation links to registration and password reset.
  */
-export function LoginForm({ onLogin, isLoading = false }: LoginFormProps) {
+export function LoginForm() {
+  const { login, isLoading, error: authError } = useAuth();
   const [formData, setFormData] = useState<LoginInput>({
     email: "",
-    password: ""
+    password: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginInput, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get redirect URL from query parameters
+  const getRedirectUrl = useCallback(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("redirect") || "/";
+    }
+    return "/";
+  }, []);
+
+  // Show auth error as toast
+  useEffect(() => {
+    if (authError) {
+      toast.error(authError);
+    }
+  }, [authError]);
+
   const validateField = useCallback((name: keyof LoginInput, value: string) => {
     try {
-      const fieldSchema = loginSchema.pick({ [name]: true });
+      const fieldSchema = loginSchema.pick({ [name]: true } as any);
       fieldSchema.parse({ [name]: value });
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
       return true;
     } catch (error: any) {
       const message = error.errors?.[0]?.message || "Błąd walidacji";
-      setErrors(prev => ({ ...prev, [name]: message }));
+      setErrors((prev) => ({ ...prev, [name]: message }));
       return false;
     }
   }, []);
 
-  const handleInputChange = (name: keyof LoginInput) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (name: keyof LoginInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Real-time validation
     validateField(name, value);
@@ -72,15 +84,15 @@ export function LoginForm({ onLogin, isLoading = false }: LoginFormProps) {
 
     setIsSubmitting(true);
     try {
-      if (onLogin) {
-        await onLogin(formData);
-      } else {
-        // Mock login for UI development
-        toast.success("Logowanie udane!");
-        console.log("Login attempt:", formData);
-      }
+      await login(formData.email, formData.password);
+
+      // Login successful - redirect to intended page or home
+      toast.success("Logowanie udane!");
+      const redirectUrl = getRedirectUrl();
+      window.location.href = redirectUrl;
     } catch (error) {
-      toast.error("Błąd logowania. Sprawdź dane i spróbuj ponownie.");
+      // Error is already handled by useAuth hook and shown as toast
+      // eslint-disable-next-line no-console
       console.error("Login error:", error);
     } finally {
       setIsSubmitting(false);
@@ -143,10 +155,7 @@ export function LoginForm({ onLogin, isLoading = false }: LoginFormProps) {
         </a>
         <p className="text-sm text-muted-foreground">
           Nie masz konta?{" "}
-          <a
-            href="/auth/register"
-            className="text-primary hover:text-primary/80 transition-colors underline"
-          >
+          <a href="/auth/register" className="text-primary hover:text-primary/80 transition-colors underline">
             Zarejestruj się
           </a>
         </p>

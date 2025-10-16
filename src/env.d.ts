@@ -2,11 +2,13 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./db/database.types";
+import type { UserDTO } from "./types";
 
 declare global {
   namespace App {
     interface Locals {
       supabase: SupabaseClient<Database>;
+      user?: UserDTO;
     }
   }
 }

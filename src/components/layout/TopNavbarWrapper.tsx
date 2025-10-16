@@ -11,8 +11,8 @@ interface TopNavbarWrapperProps {
  * Wrapper component for TopNavbar that handles authentication logic.
  * This component can be used in Astro layouts to provide navigation with user context.
  */
-export function TopNavbarWrapper({ currentPath, user }: TopNavbarWrapperProps) {
-  const { logout } = useAuth();
+export function TopNavbarWrapper({ currentPath, user: initialUser }: TopNavbarWrapperProps) {
+  const { user, logout, isAuthenticated } = useAuth({ initialUser });
 
   const handleLogout = async () => {
     try {

@@ -115,7 +115,7 @@ const MyCardsPage: React.FC = () => {
   if (isLoading && flashcards.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Ładowanie...</div>
+        <div className="text-center" data-test-id="loading-state">Ładowanie...</div>
       </div>
     );
   }
@@ -124,13 +124,13 @@ const MyCardsPage: React.FC = () => {
   if (error && flashcards.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-red-600">Błąd: {error}</div>
+        <div className="text-center text-red-600" data-test-id="error-state">Błąd: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6" data-test-id="my-cards-page">
       <FiltersPanel filters={filters} onFiltersChange={handleFiltersChange} />
       <AddFlashcardButton onOpenModal={handleOpenCreateModal} />
       <FlashcardGrid

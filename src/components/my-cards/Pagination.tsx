@@ -30,7 +30,7 @@ export const Pagination: React.FC<PaginationProps> = ({ pagination, onChange }) 
     const buttons = [];
     const maxVisible = 5;
     let start = Math.max(1, pagination.currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(pagination.totalPages, start + maxVisible - 1);
+    const end = Math.min(pagination.totalPages, start + maxVisible - 1);
 
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1);
@@ -57,11 +57,13 @@ export const Pagination: React.FC<PaginationProps> = ({ pagination, onChange }) 
   }
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between" data-test-id="pagination">
       <div className="flex items-center space-x-2">
-        <label htmlFor="page-size-select" className="text-sm text-gray-700">Rozmiar strony:</label>
+        <label htmlFor="page-size-select" className="text-sm text-gray-700">
+          Rozmiar strony:
+        </label>
         <Select value={pagination.pageSize.toString()} onValueChange={(value) => handlePageSizeChange(Number(value))}>
-          <SelectTrigger className="w-20" id="page-size-select">
+          <SelectTrigger className="w-20" id="page-size-select" data-test-id="page-size-select">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -79,10 +81,11 @@ export const Pagination: React.FC<PaginationProps> = ({ pagination, onChange }) 
           onClick={() => handlePageChange(pagination.currentPage - 1)}
           disabled={pagination.currentPage === 1}
           aria-label="Poprzednia strona"
+          data-test-id="previous-page-button"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         </Button>
-        <nav aria-label="Numery stron" className="flex items-center space-x-1">
+        <nav aria-label="Numery stron" className="flex items-center space-x-1" data-test-id="page-numbers">
           {renderPageButtons()}
         </nav>
         <Button
@@ -91,11 +94,12 @@ export const Pagination: React.FC<PaginationProps> = ({ pagination, onChange }) 
           onClick={() => handlePageChange(pagination.currentPage + 1)}
           disabled={pagination.currentPage === pagination.totalPages}
           aria-label="Następna strona"
+          data-test-id="next-page-button"
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
-      <div className="text-sm text-gray-700">
+      <div className="text-sm text-gray-700" data-test-id="total-items">
         {pagination.totalItems} elementów
       </div>
     </div>

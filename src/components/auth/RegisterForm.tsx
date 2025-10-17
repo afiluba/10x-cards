@@ -121,7 +121,7 @@ export function RegisterForm() {
   const loading = isLoading || isSubmitting;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" data-test-id="register-form">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -133,9 +133,10 @@ export function RegisterForm() {
           disabled={loading}
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "email-error" : undefined}
+          data-test-id="register-email-input"
         />
         {errors.email && (
-          <p id="email-error" className="text-sm text-destructive" role="alert">
+          <p id="email-error" className="text-sm text-destructive" role="alert" data-test-id="register-email-error">
             {errors.email}
           </p>
         )}
@@ -152,9 +153,15 @@ export function RegisterForm() {
           disabled={loading}
           aria-invalid={!!errors.password}
           aria-describedby={errors.password ? "password-error" : undefined}
+          data-test-id="register-password-input"
         />
         {errors.password && (
-          <p id="password-error" className="text-sm text-destructive" role="alert">
+          <p
+            id="password-error"
+            className="text-sm text-destructive"
+            role="alert"
+            data-test-id="register-password-error"
+          >
             {errors.password}
           </p>
         )}
@@ -171,21 +178,28 @@ export function RegisterForm() {
           disabled={loading}
           aria-invalid={!!errors.confirmPassword}
           aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
+          data-test-id="register-confirm-password-input"
         />
         {errors.confirmPassword && (
-          <p id="confirm-password-error" className="text-sm text-destructive" role="alert">
+          <p
+            id="confirm-password-error"
+            className="text-sm text-destructive"
+            role="alert"
+            data-test-id="register-confirm-password-error"
+          >
             {errors.confirmPassword}
           </p>
         )}
       </div>
 
-      <div className="flex items-start space-x-2">
+      <div className="flex items-start space-x-2" data-test-id="register-terms-container">
         <Checkbox
           id="accept-terms"
           checked={acceptTerms}
           onCheckedChange={(checked) => setAcceptTerms(checked === true)}
           disabled={loading}
           className="mt-1"
+          data-test-id="register-accept-terms-checkbox"
         />
         <div className="text-sm">
           <Label htmlFor="accept-terms" className="text-sm font-normal cursor-pointer">
@@ -195,6 +209,7 @@ export function RegisterForm() {
               className="text-primary hover:text-primary/80 transition-colors underline"
               target="_blank"
               rel="noopener noreferrer"
+              data-test-id="register-terms-link"
             >
               regulamin
             </a>{" "}
@@ -204,6 +219,7 @@ export function RegisterForm() {
               className="text-primary hover:text-primary/80 transition-colors underline"
               target="_blank"
               rel="noopener noreferrer"
+              data-test-id="register-privacy-link"
             >
               politykę prywatności
             </a>
@@ -211,7 +227,7 @@ export function RegisterForm() {
         </div>
       </div>
 
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading} className="w-full" data-test-id="register-submit-button">
         {loading ? "Rejestrowanie..." : "Zarejestruj się"}
       </Button>
 
@@ -219,7 +235,11 @@ export function RegisterForm() {
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           Masz już konto?{" "}
-          <a href="/auth/login" className="text-primary hover:text-primary/80 transition-colors underline">
+          <a
+            href="/auth/login"
+            className="text-primary hover:text-primary/80 transition-colors underline"
+            data-test-id="register-login-link"
+          >
             Zaloguj się
           </a>
         </p>

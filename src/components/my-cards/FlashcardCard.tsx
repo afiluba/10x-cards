@@ -26,7 +26,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({
   onDelete,
   onFlip,
   onSave,
-  onCancel
+  onCancel,
 }) => {
   const handleFlip = () => {
     onFlip(flashcard.id);
@@ -34,13 +34,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({
 
   // If editing, show edit form
   if (flashcard.isEditing) {
-    return (
-      <FlashcardEditForm
-        flashcard={flashcard}
-        onSave={onSave}
-        onCancel={onCancel}
-      />
-    );
+    return <FlashcardEditForm flashcard={flashcard} onSave={onSave} onCancel={onCancel} />;
   }
 
   // Normal card view
@@ -57,6 +51,8 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({
       tabIndex={0}
       role="button"
       aria-label={`Fiszka: ${flashcard.isFlipped ? flashcard.back_text : flashcard.front_text}. Naciśnij aby obrócić.`}
+      data-test-id="flashcard-card"
+      data-flashcard-id={flashcard.id}
     >
       <div
         className={`absolute inset-0 w-full h-full transition-transform duration-700 transform-style-preserve-3d ${flashcard.isFlipped ? "rotate-y-180" : ""}`}
@@ -80,6 +76,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({
                     onEdit(flashcard.id);
                   }}
                   aria-label="Edytuj fiszkę"
+                  data-test-id="edit-flashcard-button"
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -91,6 +88,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({
                     onDelete(flashcard);
                   }}
                   aria-label="Usuń fiszkę"
+                  data-test-id="delete-flashcard-button"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -118,6 +116,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({
                     onEdit(flashcard.id);
                   }}
                   aria-label="Edytuj fiszkę"
+                  data-test-id="edit-flashcard-button"
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -129,6 +128,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({
                     onDelete(flashcard);
                   }}
                   aria-label="Usuń fiszkę"
+                  data-test-id="delete-flashcard-button"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

@@ -59,7 +59,7 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onFiltersCh
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-center">
+    <div className="flex flex-col sm:flex-row gap-4 items-center" data-test-id="filters-panel">
       <div className="relative flex-1">
         <label htmlFor="search-input" className="sr-only">
           Szukaj fiszek
@@ -75,6 +75,7 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onFiltersCh
           onChange={(e) => handleSearchChange(e.target.value)}
           className="pl-10"
           aria-describedby="search-help"
+          data-test-id="search-input"
         />
         <div id="search-help" className="sr-only">
           Wyszukiwanie działa w czasie rzeczywistym z opóźnieniem 300ms
@@ -88,7 +89,7 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onFiltersCh
           value={filters.sourceType.length === 0 ? "all" : filters.sourceType[0]}
           onValueChange={handleSourceTypeChange}
         >
-          <SelectTrigger className="w-48" id="source-type-select">
+          <SelectTrigger className="w-48" id="source-type-select" data-test-id="source-type-filter">
             <SelectValue placeholder="Typ źródła" />
           </SelectTrigger>
           <SelectContent>
@@ -104,7 +105,7 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onFiltersCh
           Sortuj fiszki
         </label>
         <Select value={filters.sort} onValueChange={handleSortChange}>
-          <SelectTrigger className="w-48" id="sort-select">
+          <SelectTrigger className="w-48" id="sort-select" data-test-id="sort-select">
             <SelectValue placeholder="Sortuj" />
           </SelectTrigger>
           <SelectContent>
@@ -115,7 +116,7 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onFiltersCh
           </SelectContent>
         </Select>
       </div>
-      <Button variant="outline" onClick={handleClearFilters}>
+      <Button variant="outline" onClick={handleClearFilters} data-test-id="clear-filters-button">
         <X className="h-4 w-4 mr-2" />
         Wyczyść
       </Button>

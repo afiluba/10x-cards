@@ -8,7 +8,12 @@ interface AddFlashcardButtonProps {
 
 export const AddFlashcardButton: React.FC<AddFlashcardButtonProps> = ({ onOpenModal }) => {
   return (
-    <Button onClick={onOpenModal} className="w-full sm:w-auto" aria-label="Dodaj nową fiszkę">
+    <Button
+      onClick={onOpenModal}
+      className="w-full sm:w-auto"
+      aria-label="Dodaj nową fiszkę"
+      data-test-id="add-flashcard-button"
+    >
       <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
       Dodaj nową fiszkę
     </Button>

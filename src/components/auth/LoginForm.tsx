@@ -102,7 +102,7 @@ export function LoginForm() {
   const loading = isLoading || isSubmitting;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" data-test-id="login-form">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -114,9 +114,10 @@ export function LoginForm() {
           disabled={loading}
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "email-error" : undefined}
+          data-test-id="login-email-input"
         />
         {errors.email && (
-          <p id="email-error" className="text-sm text-destructive" role="alert">
+          <p id="email-error" className="text-sm text-destructive" role="alert" data-test-id="login-email-error">
             {errors.email}
           </p>
         )}
@@ -133,15 +134,16 @@ export function LoginForm() {
           disabled={loading}
           aria-invalid={!!errors.password}
           aria-describedby={errors.password ? "password-error" : undefined}
+          data-test-id="login-password-input"
         />
         {errors.password && (
-          <p id="password-error" className="text-sm text-destructive" role="alert">
+          <p id="password-error" className="text-sm text-destructive" role="alert" data-test-id="login-password-error">
             {errors.password}
           </p>
         )}
       </div>
 
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading} className="w-full" data-test-id="login-submit-button">
         {loading ? "Logowanie..." : "Zaloguj się"}
       </Button>
 
@@ -150,12 +152,17 @@ export function LoginForm() {
         <a
           href="/auth/reset-password"
           className="text-sm text-primary hover:text-primary/80 transition-colors underline"
+          data-test-id="login-forgot-password-link"
         >
           Zapomniałeś hasła?
         </a>
         <p className="text-sm text-muted-foreground">
           Nie masz konta?{" "}
-          <a href="/auth/register" className="text-primary hover:text-primary/80 transition-colors underline">
+          <a
+            href="/auth/register"
+            className="text-primary hover:text-primary/80 transition-colors underline"
+            data-test-id="login-register-link"
+          >
             Zarejestruj się
           </a>
         </p>

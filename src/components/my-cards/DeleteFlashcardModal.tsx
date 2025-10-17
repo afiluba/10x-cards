@@ -34,7 +34,7 @@ export const DeleteFlashcardModal: React.FC<DeleteFlashcardModalProps> = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onCancel}>
-      <AlertDialogContent>
+      <AlertDialogContent data-test-id="delete-flashcard-modal">
         <AlertDialogHeader>
           <AlertDialogTitle>Usuń fiszkę</AlertDialogTitle>
           <AlertDialogDescription>
@@ -48,8 +48,12 @@ export const DeleteFlashcardModal: React.FC<DeleteFlashcardModalProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>Anuluj</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Usuń</AlertDialogAction>
+          <AlertDialogCancel onClick={onCancel} data-test-id="cancel-delete-button">
+            Anuluj
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} data-test-id="confirm-delete-button">
+            Usuń
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

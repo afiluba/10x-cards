@@ -18,11 +18,7 @@ interface FlashcardEditFormProps {
   onCancel: (id: string) => void;
 }
 
-export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({
-  flashcard,
-  onSave,
-  onCancel,
-}) => {
+export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({ flashcard, onSave, onCancel }) => {
   const [frontText, setFrontText] = useState(flashcard.front_text);
   const [backText, setBackText] = useState(flashcard.back_text);
 
@@ -46,15 +42,18 @@ export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
+    if (e.key === "Enter" && e.ctrlKey) {
       handleSave();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       handleCancel();
     }
   };
 
   return (
-    <Card className="w-full h-[250px] border-2 border-blue-500 bg-blue-50 dark:bg-blue-950">
+    <Card
+      className="w-full h-[250px] border-2 border-blue-500 bg-blue-50 dark:bg-blue-950"
+      data-test-id="flashcard-edit-form"
+    >
       <CardContent className="p-4 h-full flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Edycja fiszki</span>
@@ -65,6 +64,7 @@ export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({
               disabled={!frontText.trim() || !backText.trim()}
               className="h-8 w-8 p-0"
               aria-label="Zapisz zmiany"
+              data-test-id="save-edit-button"
             >
               <Check className="h-4 w-4" />
             </Button>
@@ -74,6 +74,7 @@ export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({
               onClick={handleCancel}
               className="h-8 w-8 p-0"
               aria-label="Anuluj edycję"
+              data-test-id="cancel-edit-button"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -93,10 +94,9 @@ export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({
               placeholder="Wpisz tekst przodu fiszki..."
               className="min-h-[60px] resize-none"
               maxLength={500}
+              data-test-id="edit-front-input"
             />
-            <div className="text-xs text-gray-500 text-right">
-              {frontText.length}/500
-            </div>
+            <div className="text-xs text-gray-500 text-right">{frontText.length}/500</div>
           </div>
 
           <div className="space-y-2">
@@ -111,16 +111,13 @@ export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({
               placeholder="Wpisz tekst tyłu fiszki..."
               className="min-h-[60px] resize-none"
               maxLength={500}
+              data-test-id="edit-back-input"
             />
-            <div className="text-xs text-gray-500 text-right">
-              {backText.length}/500
-            </div>
+            <div className="text-xs text-gray-500 text-right">{backText.length}/500</div>
           </div>
         </div>
 
-        <div className="text-xs text-gray-500 mt-2">
-          Ctrl+Enter aby zapisać • Escape aby anulować
-        </div>
+        <div className="text-xs text-gray-500 mt-2">Ctrl+Enter aby zapisać • Escape aby anulować</div>
       </CardContent>
     </Card>
   );

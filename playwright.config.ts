@@ -39,6 +39,12 @@ export default defineConfig({
     {
       name: "setup",
       testMatch: /auth\.setup\.ts/,
+      teardown: "teardown",
+    },
+    // Teardown project - cleans up test data after all tests
+    {
+      name: "teardown",
+      testMatch: /global\.teardown\.ts/,
     },
     // Tests that require authentication
     {

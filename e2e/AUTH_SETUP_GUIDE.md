@@ -18,6 +18,7 @@ The authentication mechanism is based on Playwright's recommended approach for [
 ```
 e2e/
 ├── auth.setup.ts              # Setup project that authenticates and saves state
+├── global.teardown.ts         # Teardown project that cleans up test data
 ├── utils/
 │   └── auth.utils.ts          # Authentication utility functions
 └── .auth/
@@ -53,6 +54,15 @@ e2e/
 │    │ - No auth state loaded                              │  │
 │    │ - Tests for login/register flows                    │  │
 │    └─────────────────────────────────────────────────────┘  │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Teardown Project Runs (global.teardown.ts)               │
+│    - Reads E2E_USERNAME_ID from env                          │
+│    - Deletes all flashcards for test user                    │
+│    - Deletes all AI generation audit records                 │
+│    - Cleans up test database                                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -102,10 +112,33 @@ test("custom auth", async ({ request, baseURL }) => {
 });
 ```
 
-### 3. Updated `playwright.config.ts`
+### 3. `e2e/global.teardown.ts`
+
+**Purpose**: Teardown project that cleans up test data after all tests complete.
+
+**What it does**:
+- Runs after all test projects finish
+- Connects to Supabase using service credentials
+- Deletes all flashcards for the test user
+- Deletes all AI generation audit records for the test user
+- Ensures clean database state for next test run
+
+**Key code**:
+```typescript
+teardown("cleanup test database", async () => {
+  const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+  
+  await supabase.from("flashcards").delete().eq("user_id", testUserId);
+  await supabase.from("ai_generation_audit").delete().eq("user_id", testUserId);
+});
+```
+
+### 4. Updated `playwright.config.ts`
 
 **Changes made**:
 - Added "setup" project that runs `auth.setup.ts`
+- Added "teardown" project that runs `global.teardown.ts`
+- Linked teardown to setup project for automatic cleanup
 - Configured "chromium" project to use saved auth state
 - Added "chromium-unauthenticated" project for login/register tests
 - Set up project dependencies to ensure setup runs first
@@ -116,6 +149,11 @@ projects: [
   {
     name: "setup",
     testMatch: /auth\.setup\.ts/,
+    teardown: "teardown", // Runs teardown after all dependent tests
+  },
+  {
+    name: "teardown",
+    testMatch: /global\.teardown\.ts/,
   },
   {
     name: "chromium",
@@ -131,7 +169,7 @@ projects: [
 ]
 ```
 
-### 4. `.auth/` Directory
+### 5. `.auth/` Directory
 
 **Purpose**: Stores authentication state file.
 
@@ -147,9 +185,12 @@ projects: [
 
 1. **Create `.env.test` file** in project root:
 ```env
-E2E_USERNAME=test@example.com
-E2E_PASSWORD=password123
+E2E_USERNAME=test@test.test
+E2E_PASSWORD=pinpad
+E2E_USERNAME_ID=33917ef3-b318-4ce2-9969-ede93ae8ab22
 BASE_URL=http://localhost:4321
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
 ```
 
 2. **Ensure test user exists** in your test database with the credentials above.
@@ -165,6 +206,7 @@ This will:
 1. Run setup project → authenticates and saves state
 2. Run chromium project → tests start authenticated
 3. Run chromium-unauthenticated project → tests for auth flows
+4. Run teardown project → cleans up test data
 
 #### Only authenticated tests
 ```bash
@@ -253,7 +295,10 @@ test("should handle session expiry", async ({ request, baseURL, page }) => {
 |----------|----------|---------|-------------|
 | `E2E_USERNAME` | Yes | - | Test user email |
 | `E2E_PASSWORD` | Yes | - | Test user password |
+| `E2E_USERNAME_ID` | Yes | - | Test user UUID (for cleanup) |
 | `BASE_URL` | No | `http://localhost:4321` | Application URL |
+| `SUPABASE_URL` | Yes | - | Supabase project URL |
+| `SUPABASE_KEY` | Yes | - | Supabase anon/service key |
 
 ### Customization
 
@@ -346,6 +391,31 @@ rm -rf .auth && npm run test:e2e
 2. Use `beforeEach` to refresh session if needed
 3. Re-authenticate in the middle of long test suites
 
+### Teardown Fails
+
+**Problem**: Teardown project fails to clean up test data.
+
+**Solutions**:
+1. Verify `E2E_USERNAME_ID` is set correctly in `.env.test`
+2. Check Supabase credentials have delete permissions
+3. Ensure test user ID matches the authenticated user
+4. Verify database tables exist and are accessible
+
+```bash
+# Check if teardown runs
+npx playwright test --project=teardown
+```
+
+### Test Data Not Cleaned
+
+**Problem**: Test data persists between test runs.
+
+**Solutions**:
+1. Verify teardown project runs (check `teardown: "teardown"` in setup project)
+2. Check teardown logs for errors
+3. Manually verify test user ID matches database records
+4. Run teardown manually: `npx playwright test --project=teardown`
+
 ## Best Practices
 
 ### ✅ Do
@@ -355,6 +425,8 @@ rm -rf .auth && npm run test:e2e
 - Test login/register flows with unauthenticated project
 - Delete `.auth/user.json` to force re-authentication when needed
 - Use utility functions for custom auth scenarios
+- Ensure teardown runs to clean up test data
+- Verify `E2E_USERNAME_ID` matches the authenticated user
 
 ### ❌ Don't
 
@@ -414,12 +486,13 @@ For issues or questions:
 
 ## Summary
 
-This authentication mechanism provides:
+This authentication and teardown mechanism provides:
 - ⚡ **Fast**: Authenticate once, not per test
 - 🎯 **Reliable**: API-based, no UI flakiness  
 - 🔒 **Secure**: Credentials in env vars, state gitignored
 - 🔧 **Flexible**: Easy to extend for multiple users/roles
+- 🧹 **Clean**: Automatic test data cleanup after each run
 - 📦 **Complete**: Ready to use, fully documented
 
-The setup is complete and ready to use. Simply ensure your `.env.test` file is configured, and start writing tests!
+The setup is complete and ready to use. Simply ensure your `.env.test` file is configured with all required variables (including `E2E_USERNAME_ID` for teardown), and start writing tests!
 

@@ -62,8 +62,21 @@ export class FiltersPanel {
    * Filter by source type
    */
   async filterBySourceType(sourceType: "all" | "AI_ORIGINAL" | "AI_EDITED" | "MANUAL"): Promise<void> {
+    // Map values to display text
+    const textMap = {
+      all: "Wszystkie",
+      AI_ORIGINAL: "AI Oryginalne",
+      AI_EDITED: "AI Edytowane",
+      MANUAL: "Ręczne",
+    };
+
     await this.sourceTypeFilter.click();
-    await this.page.locator(`[role="option"][data-value="${sourceType}"]`).click();
+    // Wait for dropdown to open and select option by text (Radix UI renders in Portal)
+    const option = this.page.getByRole("option", { name: textMap[sourceType] });
+    await option.waitFor({ state: "visible", timeout: 5000 });
+    await option.click();
+    // Wait for dropdown to close
+    await this.page.waitForTimeout(300);
   }
 
   /**
@@ -71,7 +84,12 @@ export class FiltersPanel {
    */
   async sortBy(sortOption: "created_at:desc" | "created_at:asc" | "updated_at:desc" | "updated_at:asc"): Promise<void> {
     await this.sortSelect.click();
-    await this.page.locator(`[role="option"][data-value="${sortOption}"]`).click();
+    // Wait for dropdown to open (Radix UI renders in Portal)
+    const option = this.page.locator(`[role="option"][data-value="${sortOption}"]`);
+    await option.waitFor({ state: "visible", timeout: 5000 });
+    await option.click();
+    // Wait for dropdown to close
+    await this.page.waitForTimeout(300);
   }
 
   /**
@@ -100,4 +118,3 @@ export class FiltersPanel {
     }
   }
 }
-

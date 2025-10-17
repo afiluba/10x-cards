@@ -1,4 +1,4 @@
-import { Page, Locator } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 import { BasePage } from "./base.page";
 import { CreateFlashcardModal } from "./components/create-flashcard-modal.component";
 import { FlashcardCard, FlashcardEditForm } from "./components/flashcard-card.component";
@@ -59,6 +59,25 @@ export class MyCardsPage extends BasePage {
    */
   async waitForPageToLoad(): Promise<void> {
     await this.pageContainer.waitFor({ state: "visible" });
+    await this.waitForDataLoaded();
+  }
+
+  /**
+   * Wait for data to be loaded and rendered
+   * This waits for either the flashcard grid or empty message to appear
+   */
+  async waitForDataLoaded(): Promise<void> {
+    // Wait for either grid or empty message to be visible
+    // This ensures data has been fetched and rendered
+    await Promise.race([
+      this.flashcardGrid.waitFor({ state: "visible", timeout: 10000 }),
+      this.emptyMessage.waitFor({ state: "visible", timeout: 10000 }),
+    ]).catch(() => {
+      // If neither appears, that's also ok - might be in error state
+    });
+
+    // Give React a moment to finish rendering all cards
+    await this.page.waitForTimeout(100);
   }
 
   /**
@@ -224,8 +243,7 @@ export class MyCardsPage extends BasePage {
         return false;
       },
       { text },
-      { timeout },
+      { timeout }
     );
   }
 }
-

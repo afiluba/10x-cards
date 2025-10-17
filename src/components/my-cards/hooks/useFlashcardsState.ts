@@ -58,15 +58,66 @@ interface UseFlashcardsStateReturn {
  * Handles fetching, creating, deleting flashcards and managing local state.
  */
 export const useFlashcardsState = (): UseFlashcardsStateReturn => {
+  // Parse URL params for initial state
+  const getInitialFilters = (): FiltersViewModel => {
+    const defaults: FiltersViewModel = {
+      search: "",
+      sourceType: [],
+      sort: "created_at:desc",
+      page: 1,
+      pageSize: 20,
+    };
+
+    if (typeof window === "undefined") {
+      return defaults;
+    }
+
+    const url = new URL(window.location.href);
+    const searchParams = url.searchParams;
+    const urlFilters: Partial<FiltersViewModel> = {};
+
+    // Parse search
+    const search = searchParams.get("search");
+    if (search) {
+      urlFilters.search = search;
+    }
+
+    // Parse source types
+    const sourceTypes = searchParams.getAll("source_type");
+    if (sourceTypes.length > 0) {
+      urlFilters.sourceType = sourceTypes as FlashcardSourceType[];
+    }
+
+    // Parse sort
+    const sort = searchParams.get("sort");
+    if (sort && ["created_at:asc", "created_at:desc", "updated_at:asc", "updated_at:desc"].includes(sort)) {
+      urlFilters.sort = sort as FlashcardSortParam;
+    }
+
+    // Parse page
+    const page = searchParams.get("page");
+    if (page) {
+      const pageNum = parseInt(page, 10);
+      if (!isNaN(pageNum) && pageNum >= 1) {
+        urlFilters.page = pageNum;
+      }
+    }
+
+    // Parse page_size
+    const pageSize = searchParams.get("page_size");
+    if (pageSize) {
+      const sizeNum = parseInt(pageSize, 10);
+      if (!isNaN(sizeNum) && [10, 20, 50, 100].includes(sizeNum)) {
+        urlFilters.pageSize = sizeNum;
+      }
+    }
+
+    return { ...defaults, ...urlFilters };
+  };
+
   // State
   const [flashcards, setFlashcards] = useState<FlashcardViewModel[]>([]);
-  const [filters, setFilters] = useState<FiltersViewModel>({
-    search: "",
-    sourceType: [],
-    sort: "created_at:desc",
-    page: 1,
-    pageSize: 20,
-  });
+  const [filters, setFilters] = useState<FiltersViewModel>(getInitialFilters);
   const [pagination, setPagination] = useState<PaginationViewModel>({
     currentPage: 1,
     totalPages: 1,
@@ -121,28 +172,26 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
       setError(errorMessage);
-      console.error("Failed to fetch flashcards:", err);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   // Update filters and refetch
-  const updateFilters = useCallback(
-    (newFilters: Partial<FiltersViewModel>) => {
-      setFilters((prev) => {
-        const updated = { ...prev, ...newFilters };
-        // Reset to page 1 when filters change
-        if (newFilters.search !== undefined || newFilters.sourceType !== undefined) {
-          updated.page = 1;
-        }
-        return updated;
-      });
+  const updateFilters = useCallback((newFilters: Partial<FiltersViewModel>) => {
+    setFilters((prev) => {
+      const updated = { ...prev, ...newFilters };
+      // Reset to page 1 when filters change
+      if (newFilters.search !== undefined || newFilters.sourceType !== undefined) {
+        updated.page = 1;
+      }
 
       // Update URL with new filters
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
-        const updated = { ...filters, ...newFilters };
+
+        // Clear existing source_type params before adding new ones
+        url.searchParams.delete("source_type");
 
         // Update search params
         if (updated.search && updated.search.trim()) {
@@ -153,8 +202,6 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
 
         if (updated.sourceType && updated.sourceType.length > 0) {
           updated.sourceType.forEach((type) => url.searchParams.append("source_type", type));
-        } else {
-          url.searchParams.delete("source_type");
         }
 
         if (updated.sort && updated.sort !== "created_at:desc") {
@@ -178,9 +225,10 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
         // Update URL without triggering a page reload
         window.history.replaceState({}, "", url.toString());
       }
-    },
-    [filters]
-  );
+
+      return updated;
+    });
+  }, []);
 
   // Create flashcard
   const createFlashcardApi = useCallback(async (command: FlashcardCreateCommand): Promise<FlashcardDTO> => {
@@ -259,7 +307,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
         throw err;
       }
     },
-    [createFlashcardApi, flashcards]
+    [createFlashcardApi]
   );
 
   // Update flashcard wrapper
@@ -284,7 +332,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
         throw err;
       }
     },
-    [updateFlashcardApi, flashcards]
+    [updateFlashcardApi]
   );
 
   // Delete flashcard wrapper
@@ -303,7 +351,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
         throw err;
       }
     },
-    [deleteFlashcardApi, flashcards]
+    [deleteFlashcardApi]
   );
 
   // Local state management functions
@@ -328,57 +376,6 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
   const stopDeletingFlashcard = useCallback((id: string) => {
     setFlashcards((prev) => prev.map((card) => (card.id === id ? { ...card, isDeleting: false } : card)));
   }, []);
-
-  // Initialize filters from URL on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      const searchParams = url.searchParams;
-
-      const urlFilters: Partial<FiltersViewModel> = {};
-
-      // Parse search
-      const search = searchParams.get("search");
-      if (search) {
-        urlFilters.search = search;
-      }
-
-      // Parse source types
-      const sourceTypes = searchParams.getAll("source_type");
-      if (sourceTypes.length > 0) {
-        urlFilters.sourceType = sourceTypes as FlashcardSourceType[];
-      }
-
-      // Parse sort
-      const sort = searchParams.get("sort");
-      if (sort && ["created_at:asc", "created_at:desc", "updated_at:asc", "updated_at:desc"].includes(sort)) {
-        urlFilters.sort = sort as FlashcardSortParam;
-      }
-
-      // Parse page
-      const page = searchParams.get("page");
-      if (page) {
-        const pageNum = parseInt(page, 10);
-        if (!isNaN(pageNum) && pageNum >= 1) {
-          urlFilters.page = pageNum;
-        }
-      }
-
-      // Parse page_size
-      const pageSize = searchParams.get("page_size");
-      if (pageSize) {
-        const sizeNum = parseInt(pageSize, 10);
-        if (!isNaN(sizeNum) && [10, 20, 50, 100].includes(sizeNum)) {
-          urlFilters.pageSize = sizeNum;
-        }
-      }
-
-      // Apply URL filters if any were found
-      if (Object.keys(urlFilters).length > 0) {
-        setFilters((prev) => ({ ...prev, ...urlFilters }));
-      }
-    }
-  }, []); // Only run on mount
 
   // Fetch data when filters change
   useEffect(() => {

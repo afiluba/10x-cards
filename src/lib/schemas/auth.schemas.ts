@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 export const loginSchema = z.object({
   email: z.string().email("Nieprawidłowy format email").trim(),
-  password: z.string().min(6, "Hasło musi mieć minimum 6 znaków"),
+  password: z.string().min(3, "Hasło musi mieć minimum 3 znaki"),
 });
 
 /**
@@ -77,7 +77,7 @@ export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
  */
 export const loginCommandSchema = z.object({
   email: z.string().email("Nieprawidłowy format email").trim(),
-  password: z.string().min(6, "Hasło musi mieć minimum 6 znaków"),
+  password: z.string().min(3, "Hasło musi mieć minimum 3 znaki"),
 });
 
 /**

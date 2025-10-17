@@ -46,21 +46,27 @@ export class RegisterFormComponent extends BasePage {
    * Fill the email input
    */
   async fillEmail(email: string): Promise<void> {
+    await this.emailInput.click();
     await this.emailInput.fill(email);
+    await this.emailInput.blur();
   }
 
   /**
    * Fill the password input
    */
   async fillPassword(password: string): Promise<void> {
+    await this.passwordInput.click();
     await this.passwordInput.fill(password);
+    await this.passwordInput.blur();
   }
 
   /**
    * Fill the confirm password input
    */
   async fillConfirmPassword(password: string): Promise<void> {
+    await this.confirmPasswordInput.click();
     await this.confirmPasswordInput.fill(password);
+    await this.confirmPasswordInput.blur();
   }
 
   /**
@@ -68,7 +74,7 @@ export class RegisterFormComponent extends BasePage {
    */
   async setAcceptTerms(checked: boolean): Promise<void> {
     const isCurrentlyChecked = await this.isTermsAccepted();
-    
+
     if (isCurrentlyChecked !== checked) {
       // Click the checkbox directly
       await this.acceptTermsCheckbox.click();
@@ -109,21 +115,21 @@ export class RegisterFormComponent extends BasePage {
    * Get email error text
    */
   async getEmailError(): Promise<string> {
-    return await this.emailError.textContent() || "";
+    return (await this.emailError.textContent()) || "";
   }
 
   /**
    * Get password error text
    */
   async getPasswordError(): Promise<string> {
-    return await this.passwordError.textContent() || "";
+    return (await this.passwordError.textContent()) || "";
   }
 
   /**
    * Get confirm password error text
    */
   async getConfirmPasswordError(): Promise<string> {
-    return await this.confirmPasswordError.textContent() || "";
+    return (await this.confirmPasswordError.textContent()) || "";
   }
 
   /**
@@ -163,8 +169,7 @@ export class RegisterFormComponent extends BasePage {
    */
   async isTermsAccepted(): Promise<boolean> {
     // Check for aria-checked or data-state attribute
-    const state = await this.acceptTermsCheckbox.getAttribute('data-state');
-    return state === 'checked';
+    const state = await this.acceptTermsCheckbox.getAttribute("data-state");
+    return state === "checked";
   }
 }
-

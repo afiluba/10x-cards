@@ -1,4 +1,4 @@
-import { Page, Locator } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 
 /**
  * Page Object for Create Flashcard Modal component
@@ -38,14 +38,18 @@ export class CreateFlashcardModal {
    * Fill front text of flashcard
    */
   async fillFrontText(text: string): Promise<void> {
+    await this.frontInput.click();
     await this.frontInput.fill(text);
+    await this.frontInput.blur();
   }
 
   /**
    * Fill back text of flashcard
    */
   async fillBackText(text: string): Promise<void> {
+    await this.backInput.click();
     await this.backInput.fill(text);
+    await this.backInput.blur();
   }
 
   /**
@@ -107,4 +111,3 @@ export class CreateFlashcardModal {
     await this.modal.waitFor({ state: "hidden" });
   }
 }
-

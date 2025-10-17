@@ -5,6 +5,7 @@ test.describe("Flashcards Management", () => {
   let myCardsPage: MyCardsPage;
 
   test.beforeEach(async ({ page }) => {
+    // Navigate to My Cards page (authentication handled by auth.setup.ts)
     myCardsPage = new MyCardsPage(page);
     await myCardsPage.navigate();
   });
@@ -28,12 +29,19 @@ test.describe("Flashcards Management", () => {
       // Create new flashcard
       await myCardsPage.createNewFlashcard(frontText, backText);
 
-      // Wait for flashcard to appear
+      // Wait for flashcard to appear in DOM
       await myCardsPage.waitForFlashcardWithText(frontText);
 
-      // Verify flashcard count increased
-      const newCount = await myCardsPage.getFlashcardCount();
-      expect(newCount).toBe(initialCount + 1);
+      // If this was the first flashcard, wait for grid to become visible
+      if (initialCount === 0) {
+        await expect(myCardsPage.page.locator('[data-test-id="flashcard-grid"]')).toBeVisible();
+      }
+
+      // Wait for DOM to stabilize by checking the count
+      await expect(async () => {
+        const currentCount = await myCardsPage.getFlashcardCount();
+        expect(currentCount).toBe(initialCount + 1);
+      }).toPass({ timeout: 5000 });
 
       // Verify flashcard contains the text
       expect(await myCardsPage.hasFlashcardWithText(frontText)).toBe(true);

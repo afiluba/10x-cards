@@ -1,4 +1,4 @@
-import { Page, Locator } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 
 /**
  * Page Object for Filters Panel component
@@ -36,7 +36,9 @@ export class FiltersPanel {
    * Search for flashcards by text
    */
   async search(searchText: string): Promise<void> {
+    await this.searchInput.click();
     await this.searchInput.fill(searchText);
+    await this.searchInput.blur();
     // Wait for debounce (300ms)
     await this.page.waitForTimeout(350);
   }

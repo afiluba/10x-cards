@@ -26,3 +26,6 @@ pnpm-debug.log*
 
 playwright-report/
 test-results/
+
+# playwright authentication state
+.auth/

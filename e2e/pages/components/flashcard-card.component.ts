@@ -1,4 +1,4 @@
-import { Page, Locator } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 
 /**
  * Page Object for Flashcard Card component
@@ -10,7 +10,7 @@ export class FlashcardCard {
 
   constructor(
     private page: Page,
-    cardLocator?: Locator,
+    cardLocator?: Locator
   ) {
     // If cardLocator is provided, use it; otherwise, get the first card
     this.card = cardLocator || page.locator('[data-test-id="flashcard-card"]').first();
@@ -112,14 +112,18 @@ export class FlashcardEditForm {
    * Fill front text
    */
   async fillFrontText(text: string): Promise<void> {
+    await this.frontInput.click();
     await this.frontInput.fill(text);
+    await this.frontInput.blur();
   }
 
   /**
    * Fill back text
    */
   async fillBackText(text: string): Promise<void> {
+    await this.backInput.click();
     await this.backInput.fill(text);
+    await this.backInput.blur();
   }
 
   /**
@@ -174,4 +178,3 @@ export class FlashcardEditForm {
     await this.form.waitFor({ state: "hidden" });
   }
 }
-

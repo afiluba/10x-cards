@@ -38,14 +38,18 @@ export class LoginFormComponent extends BasePage {
    * Fill the email input
    */
   async fillEmail(email: string): Promise<void> {
+    await this.emailInput.click();
     await this.emailInput.fill(email);
+    await this.emailInput.blur();
   }
 
   /**
    * Fill the password input
    */
   async fillPassword(password: string): Promise<void> {
+    await this.passwordInput.click();
     await this.passwordInput.fill(password);
+    await this.passwordInput.blur();
   }
 
   /**
@@ -73,14 +77,14 @@ export class LoginFormComponent extends BasePage {
    * Get email error text
    */
   async getEmailError(): Promise<string> {
-    return await this.emailError.textContent() || "";
+    return (await this.emailError.textContent()) || "";
   }
 
   /**
    * Get password error text
    */
   async getPasswordError(): Promise<string> {
-    return await this.passwordError.textContent() || "";
+    return (await this.passwordError.textContent()) || "";
   }
 
   /**
@@ -89,17 +93,17 @@ export class LoginFormComponent extends BasePage {
   async hasValidationError(text: string): Promise<boolean> {
     const emailError = await this.emailError.isVisible();
     const passwordError = await this.passwordError.isVisible();
-    
+
     if (emailError) {
       const emailText = await this.getEmailError();
       if (emailText.includes(text)) return true;
     }
-    
+
     if (passwordError) {
       const passwordText = await this.getPasswordError();
       if (passwordText.includes(text)) return true;
     }
-    
+
     return false;
   }
 
@@ -140,4 +144,3 @@ export class LoginFormComponent extends BasePage {
     return await this.form.isVisible();
   }
 }
-

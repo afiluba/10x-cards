@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,100 +24,49 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
   const { resetPassword, updatePassword, isLoading } = useAuth();
   const isUpdateMode = !!resetToken;
 
-  const [requestData, setRequestData] = useState<ResetPasswordRequestInput>({
-    email: "",
+  const {
+    register: registerRequest,
+    handleSubmit: handleSubmitRequest,
+    formState: { errors: requestErrors, isSubmitting: isSubmittingRequest },
+  } = useForm<ResetPasswordRequestInput>({
+    resolver: zodResolver(resetPasswordRequestSchema),
+    mode: "onChange",
   });
 
-  const [updateData, setUpdateData] = useState<UpdatePasswordInput>({
-    password: "",
-    confirmPassword: "",
+  const {
+    register: registerUpdate,
+    handleSubmit: handleSubmitUpdate,
+    formState: { errors: updateErrors, isSubmitting: isSubmittingUpdate },
+  } = useForm<UpdatePasswordInput>({
+    resolver: zodResolver(updatePasswordSchema),
+    mode: "onChange",
   });
 
-  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Reset form data when mode changes
-  useEffect(() => {
-    setErrors({});
-    setRequestData({ email: "" });
-    setUpdateData({ password: "", confirmPassword: "" });
-  }, [isUpdateMode]);
-
-  const validateField = useCallback((schema: any, name: string, value: string) => {
+  const onSubmitRequest = async (data: ResetPasswordRequestInput) => {
     try {
-      const fieldSchema = schema.pick({ [name]: true });
-      fieldSchema.parse({ [name]: value });
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-      return true;
-    } catch (error: any) {
-      const message = error.errors?.[0]?.message || "Błąd walidacji";
-      setErrors((prev) => ({ ...prev, [name]: message }));
-      return false;
-    }
-  }, []);
-
-  const validateForm = useCallback(() => {
-    const schema = isUpdateMode ? updatePasswordSchema : resetPasswordRequestSchema;
-    const data = isUpdateMode ? updateData : requestData;
-
-    try {
-      schema.parse(data);
-      setErrors({});
-      return true;
-    } catch (error: any) {
-      const fieldErrors: Partial<Record<string, string>> = {};
-      error.errors?.forEach((err: any) => {
-        const field = err.path?.[0] as string;
-        if (field) {
-          fieldErrors[field] = err.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return false;
-    }
-  }, [isUpdateMode, requestData, updateData]);
-
-  const handleRequestInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setRequestData({ email: value });
-    validateField(resetPasswordRequestSchema, "email", value);
-  };
-
-  const handleUpdateInputChange = (name: keyof UpdatePasswordInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUpdateData((prev) => ({ ...prev, [name]: value }));
-    validateField(updatePasswordSchema, name, value);
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      if (isUpdateMode) {
-        await updatePassword(updateData.password, resetToken || undefined);
-        toast.success("Hasło zostało pomyślnie zmienione!");
-      } else {
-        await resetPassword(requestData.email);
-        toast.success("Link do resetowania hasła został wysłany na email!");
-      }
+      await resetPassword(data.email);
+      toast.success("Link do resetowania hasła został wysłany na email!");
     } catch (error) {
       // Error handling is already done in useAuth hook
       console.error("Reset password error:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const loading = isLoading || isSubmitting;
+  const onSubmitUpdate = async (data: UpdatePasswordInput) => {
+    try {
+      await updatePassword(data.password, resetToken || undefined);
+      toast.success("Hasło zostało pomyślnie zmienione!");
+    } catch (error) {
+      // Error handling is already done in useAuth hook
+      console.error("Update password error:", error);
+    }
+  };
+
+  const loading = isLoading || isSubmittingRequest || isSubmittingUpdate;
 
   if (isUpdateMode) {
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmitUpdate(onSubmitUpdate)} className="space-y-4">
         <div className="text-center mb-6">
           <h2 className="text-lg font-semibold">Ustaw nowe hasło</h2>
           <p className="text-sm text-muted-foreground">Wprowadź nowe hasło dla swojego konta</p>
@@ -127,16 +77,15 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
           <Input
             id="password"
             type="password"
-            value={updateData.password}
-            onChange={handleUpdateInputChange("password")}
+            {...registerUpdate("password")}
             placeholder="Minimum 8 znaków"
             disabled={loading}
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? "password-error" : undefined}
+            aria-invalid={!!updateErrors.password}
+            aria-describedby={updateErrors.password ? "password-error" : undefined}
           />
-          {errors.password && (
+          {updateErrors.password && (
             <p id="password-error" className="text-sm text-destructive" role="alert">
-              {errors.password}
+              {updateErrors.password.message}
             </p>
           )}
         </div>
@@ -146,16 +95,15 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
           <Input
             id="confirmPassword"
             type="password"
-            value={updateData.confirmPassword}
-            onChange={handleUpdateInputChange("confirmPassword")}
+            {...registerUpdate("confirmPassword")}
             placeholder="Powtórz hasło"
             disabled={loading}
-            aria-invalid={!!errors.confirmPassword}
-            aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
+            aria-invalid={!!updateErrors.confirmPassword}
+            aria-describedby={updateErrors.confirmPassword ? "confirm-password-error" : undefined}
           />
-          {errors.confirmPassword && (
+          {updateErrors.confirmPassword && (
             <p id="confirm-password-error" className="text-sm text-destructive" role="alert">
-              {errors.confirmPassword}
+              {updateErrors.confirmPassword.message}
             </p>
           )}
         </div>
@@ -168,7 +116,7 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmitRequest(onSubmitRequest)} className="space-y-4">
       <div className="text-center mb-6">
         <h2 className="text-lg font-semibold">Resetowanie hasła</h2>
         <p className="text-sm text-muted-foreground">
@@ -181,16 +129,15 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
         <Input
           id="email"
           type="email"
-          value={requestData.email}
-          onChange={handleRequestInputChange}
+          {...registerRequest("email")}
           placeholder="twoj@email.com"
           disabled={loading}
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? "email-error" : undefined}
+          aria-invalid={!!requestErrors.email}
+          aria-describedby={requestErrors.email ? "email-error" : undefined}
         />
-        {errors.email && (
+        {requestErrors.email && (
           <p id="email-error" className="text-sm text-destructive" role="alert">
-            {errors.email}
+            {requestErrors.email.message}
           </p>
         )}
       </div>

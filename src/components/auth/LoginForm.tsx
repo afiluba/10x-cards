@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useCallback, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,21 +14,14 @@ import { toast } from "sonner";
  */
 export function LoginForm() {
   const { login, isLoading, error: authError } = useAuth();
-  const [formData, setFormData] = useState<LoginInput>({
-    email: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    mode: "onChange",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof LoginInput, string>>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Get redirect URL from query parameters
-  const getRedirectUrl = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get("redirect") || "/";
-    }
-    return "/";
-  }, []);
 
   // Show auth error as toast
   useEffect(() => {
@@ -36,80 +30,33 @@ export function LoginForm() {
     }
   }, [authError]);
 
-  const validateField = useCallback((name: keyof LoginInput, value: string) => {
+  const onSubmit = async (data: LoginInput) => {
     try {
-      const fieldSchema = loginSchema.pick({ [name]: true } as any);
-      fieldSchema.parse({ [name]: value });
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-      return true;
-    } catch (error: any) {
-      const message = error.errors?.[0]?.message || "Błąd walidacji";
-      setErrors((prev) => ({ ...prev, [name]: message }));
-      return false;
-    }
-  }, []);
-
-  const handleInputChange = (name: keyof LoginInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Real-time validation
-    validateField(name, value);
-  };
-
-  const validateForm = useCallback(() => {
-    try {
-      loginSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (error: any) {
-      const fieldErrors: Partial<Record<keyof LoginInput, string>> = {};
-      error.errors?.forEach((err: any) => {
-        const field = err.path?.[0] as keyof LoginInput;
-        if (field) {
-          fieldErrors[field] = err.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return false;
-    }
-  }, [formData]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await login(formData.email, formData.password);
+      await login(data.email, data.password);
 
       // Login successful - redirect to intended page or home
       toast.success("Logowanie udane!");
-      const redirectUrl = getRedirectUrl();
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get("redirect") || "/";
+      // eslint-disable-next-line react-compiler/react-compiler
       window.location.href = redirectUrl;
     } catch (error) {
       // Error is already handled by useAuth hook and shown as toast
       // eslint-disable-next-line no-console
       console.error("Login error:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const loading = isLoading || isSubmitting;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" data-test-id="login-form">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" data-test-id="login-form">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
-          value={formData.email}
-          onChange={handleInputChange("email")}
+          {...register("email")}
           placeholder="twoj@email.com"
           disabled={loading}
           aria-invalid={!!errors.email}
@@ -118,7 +65,7 @@ export function LoginForm() {
         />
         {errors.email && (
           <p id="email-error" className="text-sm text-destructive" role="alert" data-test-id="login-email-error">
-            {errors.email}
+            {errors.email.message}
           </p>
         )}
       </div>
@@ -128,8 +75,7 @@ export function LoginForm() {
         <Input
           id="password"
           type="password"
-          value={formData.password}
-          onChange={handleInputChange("password")}
+          {...register("password")}
           placeholder="Wprowadź hasło"
           disabled={loading}
           aria-invalid={!!errors.password}
@@ -138,7 +84,7 @@ export function LoginForm() {
         />
         {errors.password && (
           <p id="password-error" className="text-sm text-destructive" role="alert" data-test-id="login-password-error">
-            {errors.password}
+            {errors.password.message}
           </p>
         )}
       </div>

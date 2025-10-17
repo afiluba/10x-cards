@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { registerSchema, type RegisterInput } from "@/lib/schemas/auth.schemas";
@@ -54,72 +54,35 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" data-test-id="register-form">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          {...register("email")}
-          placeholder="twoj@email.com"
-          disabled={loading}
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          data-test-id="register-email-input"
-        />
-        {errors.email && (
-          <p id="email-error" className="text-sm text-destructive" role="alert" data-test-id="register-email-error">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+      <FormField
+        label="Email"
+        type="email"
+        placeholder="twoj@email.com"
+        registration={register("email")}
+        error={errors.email}
+        disabled={loading}
+        data-test-id="register-email-input"
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Hasło</Label>
-        <Input
-          id="password"
-          type="password"
-          {...register("password")}
-          placeholder="Minimum 8 znaków"
-          disabled={loading}
-          aria-invalid={!!errors.password}
-          aria-describedby={errors.password ? "password-error" : undefined}
-          data-test-id="register-password-input"
-        />
-        {errors.password && (
-          <p
-            id="password-error"
-            className="text-sm text-destructive"
-            role="alert"
-            data-test-id="register-password-error"
-          >
-            {errors.password.message}
-          </p>
-        )}
-      </div>
+      <FormField
+        label="Hasło"
+        type="password"
+        placeholder="Minimum 8 znaków"
+        registration={register("password")}
+        error={errors.password}
+        disabled={loading}
+        data-test-id="register-password-input"
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Powtórz hasło</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          {...register("confirmPassword")}
-          placeholder="Powtórz hasło"
-          disabled={loading}
-          aria-invalid={!!errors.confirmPassword}
-          aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
-          data-test-id="register-confirm-password-input"
-        />
-        {errors.confirmPassword && (
-          <p
-            id="confirm-password-error"
-            className="text-sm text-destructive"
-            role="alert"
-            data-test-id="register-confirm-password-error"
-          >
-            {errors.confirmPassword.message}
-          </p>
-        )}
-      </div>
+      <FormField
+        label="Powtórz hasło"
+        type="password"
+        placeholder="Powtórz hasło"
+        registration={register("confirmPassword")}
+        error={errors.confirmPassword}
+        disabled={loading}
+        data-test-id="register-confirm-password-input"
+      />
 
       <div className="flex items-start space-x-2" data-test-id="register-terms-container">
         <Checkbox

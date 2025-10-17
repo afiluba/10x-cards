@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth.schemas";
 import { useAuth } from "@/components/layout/hooks/useAuth";
 import { toast } from "sonner";
@@ -51,43 +50,25 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" data-test-id="login-form">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          {...register("email")}
-          placeholder="twoj@email.com"
-          disabled={loading}
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          data-test-id="login-email-input"
-        />
-        {errors.email && (
-          <p id="email-error" className="text-sm text-destructive" role="alert" data-test-id="login-email-error">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+      <FormField
+        label="Email"
+        type="email"
+        placeholder="twoj@email.com"
+        registration={register("email")}
+        error={errors.email}
+        disabled={loading}
+        data-test-id="login-email-input"
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Hasło</Label>
-        <Input
-          id="password"
-          type="password"
-          {...register("password")}
-          placeholder="Wprowadź hasło"
-          disabled={loading}
-          aria-invalid={!!errors.password}
-          aria-describedby={errors.password ? "password-error" : undefined}
-          data-test-id="login-password-input"
-        />
-        {errors.password && (
-          <p id="password-error" className="text-sm text-destructive" role="alert" data-test-id="login-password-error">
-            {errors.password.message}
-          </p>
-        )}
-      </div>
+      <FormField
+        label="Hasło"
+        type="password"
+        placeholder="Wprowadź hasło"
+        registration={register("password")}
+        error={errors.password}
+        disabled={loading}
+        data-test-id="login-password-input"
+      />
 
       <Button type="submit" disabled={loading} className="w-full" data-test-id="login-submit-button">
         {loading ? "Logowanie..." : "Zaloguj się"}

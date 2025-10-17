@@ -1,8 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import {
   resetPasswordRequestSchema,
   updatePasswordSchema,
@@ -72,41 +71,23 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
           <p className="text-sm text-muted-foreground">Wprowadź nowe hasło dla swojego konta</p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Nowe hasło</Label>
-          <Input
-            id="password"
-            type="password"
-            {...registerUpdate("password")}
-            placeholder="Minimum 8 znaków"
-            disabled={loading}
-            aria-invalid={!!updateErrors.password}
-            aria-describedby={updateErrors.password ? "password-error" : undefined}
-          />
-          {updateErrors.password && (
-            <p id="password-error" className="text-sm text-destructive" role="alert">
-              {updateErrors.password.message}
-            </p>
-          )}
-        </div>
+        <FormField
+          label="Nowe hasło"
+          type="password"
+          placeholder="Minimum 8 znaków"
+          registration={registerUpdate("password")}
+          error={updateErrors.password}
+          disabled={loading}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Powtórz nowe hasło</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            {...registerUpdate("confirmPassword")}
-            placeholder="Powtórz hasło"
-            disabled={loading}
-            aria-invalid={!!updateErrors.confirmPassword}
-            aria-describedby={updateErrors.confirmPassword ? "confirm-password-error" : undefined}
-          />
-          {updateErrors.confirmPassword && (
-            <p id="confirm-password-error" className="text-sm text-destructive" role="alert">
-              {updateErrors.confirmPassword.message}
-            </p>
-          )}
-        </div>
+        <FormField
+          label="Powtórz nowe hasło"
+          type="password"
+          placeholder="Powtórz hasło"
+          registration={registerUpdate("confirmPassword")}
+          error={updateErrors.confirmPassword}
+          disabled={loading}
+        />
 
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Zmienianie hasła..." : "Zmień hasło"}
@@ -124,23 +105,14 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
         </p>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          {...registerRequest("email")}
-          placeholder="twoj@email.com"
-          disabled={loading}
-          aria-invalid={!!requestErrors.email}
-          aria-describedby={requestErrors.email ? "email-error" : undefined}
-        />
-        {requestErrors.email && (
-          <p id="email-error" className="text-sm text-destructive" role="alert">
-            {requestErrors.email.message}
-          </p>
-        )}
-      </div>
+      <FormField
+        label="Email"
+        type="email"
+        placeholder="twoj@email.com"
+        registration={registerRequest("email")}
+        error={requestErrors.email}
+        disabled={loading}
+      />
 
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Wysyłanie..." : "Wyślij link resetowania"}

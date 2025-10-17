@@ -290,15 +290,14 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
       try {
         const newCard = await createFlashcardApi(command);
 
-        // Add to local state (optimistic update)
-        const newViewModel: FlashcardViewModel = {
-          ...newCard,
-          isFlipped: false,
-          isEditing: false,
-          isDeleting: false,
-        };
-
-        setFlashcards((prev) => [newViewModel, ...prev]);
+        // Refetch to ensure pagination state is updated correctly
+        await fetchFlashcards({
+          page: filters.page,
+          page_size: filters.pageSize,
+          source_type: filters.sourceType.length > 0 ? filters.sourceType : undefined,
+          search: filters.search || undefined,
+          sort: filters.sort,
+        });
 
         return newCard;
       } catch (err) {
@@ -307,7 +306,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
         throw err;
       }
     },
-    [createFlashcardApi]
+    [createFlashcardApi, fetchFlashcards, filters]
   );
 
   // Update flashcard wrapper
@@ -341,8 +340,42 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
       try {
         const result = await deleteFlashcardApi(id, reason);
 
-        // Remove from local state (optimistic update)
-        setFlashcards((prev) => prev.filter((f) => f.id !== id));
+        // Determine the target page after deletion
+        // If we're deleting the last item on a page, navigate to the previous page
+        const currentPageItemCount = flashcards.length;
+        const isLastItemOnPage = currentPageItemCount === 1;
+        const shouldNavigateToPreviousPage = isLastItemOnPage && filters.page > 1;
+
+        const targetPage = shouldNavigateToPreviousPage ? filters.page - 1 : filters.page;
+
+        // Update filters if we need to navigate to a different page
+        if (shouldNavigateToPreviousPage) {
+          setFilters((prev) => {
+            const updated = { ...prev, page: targetPage };
+
+            // Update URL
+            if (typeof window !== "undefined") {
+              const url = new URL(window.location.href);
+              if (targetPage > 1) {
+                url.searchParams.set("page", targetPage.toString());
+              } else {
+                url.searchParams.delete("page");
+              }
+              window.history.replaceState({}, "", url.toString());
+            }
+
+            return updated;
+          });
+        }
+
+        // Refetch to ensure pagination state is updated correctly
+        await fetchFlashcards({
+          page: targetPage,
+          page_size: filters.pageSize,
+          source_type: filters.sourceType.length > 0 ? filters.sourceType : undefined,
+          search: filters.search || undefined,
+          sort: filters.sort,
+        });
 
         return result;
       } catch (err) {
@@ -351,7 +384,7 @@ export const useFlashcardsState = (): UseFlashcardsStateReturn => {
         throw err;
       }
     },
-    [deleteFlashcardApi]
+    [deleteFlashcardApi, fetchFlashcards, filters, flashcards]
   );
 
   // Local state management functions

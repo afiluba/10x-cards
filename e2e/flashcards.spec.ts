@@ -223,7 +223,7 @@ test.describe("Flashcards Management", () => {
   test.describe("Pagination", () => {
     test("should show pagination when there are many flashcards", async () => {
       // Create multiple flashcards (more than default page size)
-      for (let i = 1; i <= 12; i++) {
+      for (let i = 1; i <= 21; i++) {
         await myCardsPage.createNewFlashcard(`Question ${i}`, `Answer ${i}`);
       }
 

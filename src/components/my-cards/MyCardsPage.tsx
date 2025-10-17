@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { FiltersPanel } from "./FiltersPanel";
 import { AddFlashcardButton } from "./AddFlashcardButton";
@@ -115,7 +113,9 @@ const MyCardsPage: React.FC = () => {
   if (isLoading && flashcards.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center" data-test-id="loading-state">Ładowanie...</div>
+        <div className="text-center" data-test-id="loading-state">
+          Ładowanie...
+        </div>
       </div>
     );
   }
@@ -124,7 +124,9 @@ const MyCardsPage: React.FC = () => {
   if (error && flashcards.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-red-600" data-test-id="error-state">Błąd: {error}</div>
+        <div className="text-center text-red-600" data-test-id="error-state">
+          Błąd: {error}
+        </div>
       </div>
     );
   }

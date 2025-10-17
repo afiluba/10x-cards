@@ -30,8 +30,9 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
         <button
           className="flex items-center space-x-2 rounded-full ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label="Menu użytkownika"
+          data-test-id="user-menu-trigger"
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8" data-test-id="user-avatar">
             <AvatarImage src={user.avatar_url} alt={`Avatar użytkownika ${user.email}`} />
             <AvatarFallback>{getUserInitials(user.email)}</AvatarFallback>
           </Avatar>
@@ -41,16 +42,11 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.email}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              Zalogowany
-            </p>
+            <p className="text-xs leading-none text-muted-foreground">Zalogowany</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={onLogout}
-          className="cursor-pointer text-red-600 focus:text-red-600"
-        >
+        <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-600 focus:text-red-600">
           Wyloguj
         </DropdownMenuItem>
       </DropdownMenuContent>

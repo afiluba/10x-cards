@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { LoginPage, RegisterPage } from "./pages";
 
+// Get test credentials from environment variables
+const TEST_EMAIL = process.env.E2E_USERNAME || "test@example.com";
+const TEST_PASSWORD = process.env.E2E_PASSWORD || "password123";
+
 test.describe("Authentication", () => {
   test.describe("Registration", () => {
     let registerPage: RegisterPage;
@@ -13,7 +17,7 @@ test.describe("Authentication", () => {
     test("should display registration form", async () => {
       // Verify form is visible
       expect(await registerPage.registerForm.isVisible()).toBe(true);
-      
+
       // Verify submit button exists
       expect(await registerPage.registerForm.isSubmitButtonEnabled()).toBe(true);
     });
@@ -24,11 +28,11 @@ test.describe("Authentication", () => {
     });
 
     test("should fill registration form fields", async () => {
-      // Fill form fields
-      await registerPage.registerForm.fillEmail("test@example.com");
-      await registerPage.registerForm.fillPassword("password123");
-      await registerPage.registerForm.fillConfirmPassword("password123");
-      
+      // Fill form fields using environment variables
+      await registerPage.registerForm.fillEmail(TEST_EMAIL);
+      await registerPage.registerForm.fillPassword(TEST_PASSWORD);
+      await registerPage.registerForm.fillConfirmPassword(TEST_PASSWORD);
+
       // Click the terms checkbox
       await registerPage.registerForm.setAcceptTerms(true);
 
@@ -48,18 +52,32 @@ test.describe("Authentication", () => {
     test("should display login form", async () => {
       // Verify form is visible
       expect(await loginPage.loginForm.isVisible()).toBe(true);
-      
+
       // Verify submit button exists
       expect(await loginPage.loginForm.isSubmitButtonEnabled()).toBe(true);
     });
 
     test("should fill login form fields", async () => {
-      // Fill form fields
-      await loginPage.loginForm.fillEmail("test@example.com");
-      await loginPage.loginForm.fillPassword("password123");
+      // Fill form fields using environment variables
+      await loginPage.loginForm.fillEmail(TEST_EMAIL);
+      await loginPage.loginForm.fillPassword(TEST_PASSWORD);
 
       // Verify form is still visible (no submission yet)
       expect(await loginPage.loginForm.isVisible()).toBe(true);
+    });
+
+    test("should successfully login with valid credentials", async () => {
+      // Fill and submit login form with valid credentials from environment
+      await loginPage.login(TEST_EMAIL, TEST_PASSWORD);
+
+      // Wait for successful login and redirect to home page
+      await loginPage.waitForSuccessfulLogin();
+
+      // Verify we're on the home page
+      await expect(loginPage.page).toHaveURL("/");
+
+      // Verify user avatar is visible in navbar
+      expect(await loginPage.isUserAvatarVisible()).toBe(true);
     });
 
     test("should navigate to register page via link", async () => {

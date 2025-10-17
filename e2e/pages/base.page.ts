@@ -61,5 +61,18 @@ export class BasePage {
   async getTextByTestId(testId: string): Promise<string> {
     return (await this.getByTestId(testId).textContent()) || "";
   }
-}
 
+  /**
+   * Check if user avatar is visible in navbar (indicates logged in state)
+   */
+  async isUserAvatarVisible(): Promise<boolean> {
+    return await this.isTestIdVisible("user-avatar");
+  }
+
+  /**
+   * Check if user is logged in by checking for user menu trigger
+   */
+  async isUserLoggedIn(): Promise<boolean> {
+    return await this.isTestIdVisible("user-menu-trigger");
+  }
+}

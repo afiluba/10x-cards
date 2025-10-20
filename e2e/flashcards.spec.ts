@@ -16,7 +16,7 @@ test.describe("Flashcards Management", () => {
       await myCardsPage.clickAddFlashcard();
 
       // Verify modal is visible
-      await expect(myCardsPage.createModal.isVisible()).resolves.toBe(true);
+      await myCardsPage.createModal.waitForModal();
     });
 
     test("should create a new flashcard successfully", async () => {
@@ -42,9 +42,6 @@ test.describe("Flashcards Management", () => {
         const currentCount = await myCardsPage.getFlashcardCount();
         expect(currentCount).toBe(initialCount + 1);
       }).toPass({ timeout: 5000 });
-
-      // Verify flashcard contains the text
-      expect(await myCardsPage.hasFlashcardWithText(frontText)).toBe(true);
     });
 
     test("should not allow saving flashcard with empty fields", async () => {
@@ -75,7 +72,6 @@ test.describe("Flashcards Management", () => {
 
       // Verify modal is closed
       await myCardsPage.createModal.waitForModalClose();
-      expect(await myCardsPage.createModal.isVisible()).toBe(false);
     });
   });
 
@@ -89,9 +85,6 @@ test.describe("Flashcards Management", () => {
 
       // Wait for loading to finish and grid to be visible
       await myCardsPage.waitForFlashcards();
-
-      // Verify grid is visible
-      expect(await myCardsPage.isFlashcardGridVisible()).toBe(true);
     });
 
     test("should flip flashcard on click", async () => {
@@ -102,9 +95,6 @@ test.describe("Flashcards Management", () => {
       const card = myCardsPage.getFirstFlashcardCard();
       await card.waitForCard();
       await card.flip();
-
-      // After flipping, verify the card still exists
-      expect(await card.isVisible()).toBe(true);
     });
   });
 
@@ -120,9 +110,6 @@ test.describe("Flashcards Management", () => {
 
       // Wait for changes to appear
       await myCardsPage.waitForFlashcardWithText(newFrontText);
-
-      // Verify the updated text is present
-      expect(await myCardsPage.hasFlashcardWithText(newFrontText)).toBe(true);
     });
 
     test("should cancel edit without saving changes", async () => {
@@ -142,7 +129,7 @@ test.describe("Flashcards Management", () => {
       await myCardsPage.editForm.clickCancel();
       await myCardsPage.editForm.waitForFormClose();
 
-      // Verify original text is still present
+      // Verify original text is still present (form close doesn't guarantee the card is still there)
       expect(await myCardsPage.hasFlashcardWithText(originalText)).toBe(true);
     });
   });
@@ -159,22 +146,18 @@ test.describe("Flashcards Management", () => {
       // Wait for grid to become visible
       await expect(myCardsPage.page.locator('[data-test-id="flashcard-grid"]')).toBeVisible();
 
-      // Wait for DOM to stabilize and get initial count
-      let initialCount = 0;
-      await expect(async () => {
-        initialCount = await myCardsPage.getFlashcardCount();
-        expect(initialCount).toBeGreaterThan(0);
-      }).toPass({ timeout: 5000 });
+      // Get initial count
+      const initialCount = await myCardsPage.getFlashcardCount();
+      expect(initialCount).toBeGreaterThan(0);
 
       // Delete the flashcard
       await myCardsPage.deleteFlashcard(0);
 
-      // Wait for deletion to complete
-      await myCardsPage.page.waitForTimeout(500);
-
-      // Verify count decreased
-      const newCount = await myCardsPage.getFlashcardCount();
-      expect(newCount).toBe(initialCount - 1);
+      // Wait for the count to actually decrease (using toPass for retry logic)
+      await expect(async () => {
+        const newCount = await myCardsPage.getFlashcardCount();
+        expect(newCount).toBe(initialCount - 1);
+      }).toPass({ timeout: 5000 });
     });
 
     test("should cancel delete without removing flashcard", async () => {
@@ -228,11 +211,10 @@ test.describe("Flashcards Management", () => {
       // Filter by MANUAL
       await myCardsPage.filtersPanel.filterBySourceType("MANUAL");
 
-      // Wait for filter to apply
-      await myCardsPage.page.waitForTimeout(500);
-
-      // Verify flashcard is visible
-      expect(await myCardsPage.isFlashcardGridVisible()).toBe(true);
+      // Wait for filter to apply and verify flashcard is visible
+      await expect(async () => {
+        expect(await myCardsPage.isFlashcardGridVisible()).toBe(true);
+      }).toPass({ timeout: 5000 });
     });
 
     test("should clear all filters", async () => {

@@ -35,7 +35,7 @@ describe("Feature Flags System", () => {
       });
 
       it("should log warning when PUBLIC_ENV_NAME is invalid", () => {
-        const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, "warn").mockImplementation(vi.fn());
         vi.stubEnv("PUBLIC_ENV_NAME", "invalid-environment");
 
         isFeatureEnabled(FeatureFlag.AUTH);

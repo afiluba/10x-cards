@@ -26,12 +26,23 @@ teardown("cleanup test database", async () => {
   const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
   try {
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: process.env.E2E_USERNAME || "",
+      password: process.env.E2E_PASSWORD || "",
+    });
+
+    if (signInError) {
+      // eslint-disable-next-line no-console
+      console.log("Error signing in:", signInError);
+      throw signInError;
+    }
+
     // Delete flashcards for test user
     // This will automatically handle the foreign key relationship with ai_generation_audit
     const { error: flashcardsError } = await supabase.from("flashcards").delete().eq("user_id", testUserId);
 
     if (flashcardsError) {
-      throw new Error(`Failed to delete flashcards: ${flashcardsError.message}`);
+      throw new Error(`Failed to delete flashcards: ${flashcardsError}`);
     }
 
     // Delete AI generation audit records for test user

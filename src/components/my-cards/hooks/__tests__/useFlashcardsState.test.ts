@@ -387,9 +387,16 @@ describe("useFlashcardsState", () => {
         });
 
         const newCard = createMockFlashcard({ id: "new-card", front_text: "New front", back_text: "New back" });
+        // Mock POST request
         fetchMock.mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve(newCard),
+        });
+
+        // Mock refetch after create
+        fetchMock.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(createMockApiResponse([newCard])),
         });
 
         const { result } = renderHook(() => useFlashcardsState());
@@ -548,9 +555,16 @@ describe("useFlashcardsState", () => {
         });
 
         const deleteResponse = createMockDeleteResponse();
+        // Mock DELETE request
         fetchMock.mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve(deleteResponse),
+        });
+
+        // Mock refetch after delete
+        fetchMock.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(createMockApiResponse([card2])),
         });
 
         const { result } = renderHook(() => useFlashcardsState());
@@ -574,9 +588,16 @@ describe("useFlashcardsState", () => {
         });
 
         const deleteResponse = createMockDeleteResponse();
+        // Mock DELETE request
         fetchMock.mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve(deleteResponse),
+        });
+
+        // Mock refetch after delete (empty since we deleted the only card)
+        fetchMock.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(createMockApiResponse([])),
         });
 
         const { result } = renderHook(() => useFlashcardsState());
@@ -819,14 +840,28 @@ describe("useFlashcardsState", () => {
       const newCard1 = createMockFlashcard({ id: "card-1" });
       const newCard2 = createMockFlashcard({ id: "card-2" });
 
+      // Mock POST request for card 1
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(newCard1),
       });
 
+      // Mock refetch after card 1 creation
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(createMockApiResponse([newCard1])),
+      });
+
+      // Mock POST request for card 2
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(newCard2),
+      });
+
+      // Mock refetch after card 2 creation
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(createMockApiResponse([newCard2, newCard1])),
       });
 
       const { result } = renderHook(() => useFlashcardsState());

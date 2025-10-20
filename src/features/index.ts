@@ -7,11 +7,11 @@ import { FeatureFlag } from "./types";
 import { featureConfig } from "./config";
 
 /**
- * Pobiera bieżące środowisko z zmiennej ENV_NAME
+ * Pobiera bieżące środowisko z zmiennej PUBLIC_ENV_NAME
  * @returns Nazwa środowiska lub null jeśli nieprawidłowe
  */
 function getCurrentEnvironment(): Environment | null {
-  const envName = import.meta.env.ENV_NAME;
+  const envName = import.meta.env.PUBLIC_ENV_NAME;
 
   // Walidacja środowiska
   const validEnvironments: Environment[] = ["local", "integration", "production"];
@@ -22,7 +22,7 @@ function getCurrentEnvironment(): Environment | null {
 
   // Zwracamy null dla nieprawidłowego środowiska
   // eslint-disable-next-line no-console
-  console.warn(`Invalid or missing ENV_NAME: "${envName}". All features will be disabled.`);
+  console.warn(`Invalid or missing PUBLIC_ENV_NAME: "${envName}". All features will be disabled.`);
   return null;
 }
 

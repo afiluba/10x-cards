@@ -33,7 +33,7 @@ System rozpoznaje trzy środowiska:
 - `integration` - Środowisko testowe
 - `production` - Środowisko produkcyjne
 
-Środowisko jest wykrywane automatycznie na podstawie zmiennej środowiskowej `ENV_NAME`.
+Środowisko jest wykrywane automatycznie na podstawie zmiennej środowiskowej `PUBLIC_ENV_NAME`.
 
 ### Domyślna Konfiguracja
 
@@ -129,7 +129,7 @@ export const featureConfig: FeatureConfig = {
 ## Bezpieczeństwo
 
 - Flagi których nie ma w konfiguracji domyślnie zwracają `false`
-- Nieprawidłowe wartości `ENV_NAME` powodują fallback na środowisko `local`
+- Nieprawidłowe wartości `PUBLIC_ENV_NAME` powodują fallback na środowisko `local`
 - TypeScript zapewnia type safety przy korzystaniu z flag (uniknięcie literówek)
 
 ## Architektura

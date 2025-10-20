@@ -8,7 +8,7 @@ import { isFeatureEnabled, FeatureFlag } from "../index";
 describe("Feature Flags System", () => {
   beforeEach(() => {
     // Ustaw domyślne środowisko przed każdym testem
-    vi.stubEnv("ENV_NAME", "local");
+    vi.stubEnv("PUBLIC_ENV_NAME", "local");
   });
 
   afterEach(() => {
@@ -18,29 +18,29 @@ describe("Feature Flags System", () => {
 
   describe("isFeatureEnabled", () => {
     describe("invalid environment behavior", () => {
-      it("should return false for all features when ENV_NAME is undefined", () => {
-        vi.stubEnv("ENV_NAME", undefined);
+      it("should return false for all features when PUBLIC_ENV_NAME is undefined", () => {
+        vi.stubEnv("PUBLIC_ENV_NAME", undefined);
 
         // Dla nieprawidłowego środowiska wszystkie flagi są false
         expect(isFeatureEnabled(FeatureFlag.AUTH)).toBe(false);
         expect(isFeatureEnabled(FeatureFlag.AI_GENERATION)).toBe(false);
       });
 
-      it("should return false for all features when ENV_NAME is invalid", () => {
-        vi.stubEnv("ENV_NAME", "invalid-environment");
+      it("should return false for all features when PUBLIC_ENV_NAME is invalid", () => {
+        vi.stubEnv("PUBLIC_ENV_NAME", "invalid-environment");
 
         // Dla nieprawidłowego środowiska wszystkie flagi są false
         expect(isFeatureEnabled(FeatureFlag.AUTH)).toBe(false);
         expect(isFeatureEnabled(FeatureFlag.AI_GENERATION)).toBe(false);
       });
 
-      it("should log warning when ENV_NAME is invalid", () => {
+      it("should log warning when PUBLIC_ENV_NAME is invalid", () => {
         const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        vi.stubEnv("ENV_NAME", "invalid-environment");
+        vi.stubEnv("PUBLIC_ENV_NAME", "invalid-environment");
 
         isFeatureEnabled(FeatureFlag.AUTH);
 
-        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Invalid or missing ENV_NAME"));
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Invalid or missing PUBLIC_ENV_NAME"));
         expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("All features will be disabled"));
 
         consoleSpy.mockRestore();
@@ -50,19 +50,19 @@ describe("Feature Flags System", () => {
     describe("valid environment behavior", () => {
       it("should not throw error for valid environments", () => {
         expect(() => {
-          vi.stubEnv("ENV_NAME", "local");
+          vi.stubEnv("PUBLIC_ENV_NAME", "local");
           isFeatureEnabled(FeatureFlag.AUTH);
 
-          vi.stubEnv("ENV_NAME", "integration");
+          vi.stubEnv("PUBLIC_ENV_NAME", "integration");
           isFeatureEnabled(FeatureFlag.AUTH);
 
-          vi.stubEnv("ENV_NAME", "production");
+          vi.stubEnv("PUBLIC_ENV_NAME", "production");
           isFeatureEnabled(FeatureFlag.AUTH);
         }).not.toThrow();
       });
 
       it("should return boolean for valid environment", () => {
-        vi.stubEnv("ENV_NAME", "local");
+        vi.stubEnv("PUBLIC_ENV_NAME", "local");
         const result = isFeatureEnabled(FeatureFlag.AUTH);
         expect(typeof result).toBe("boolean");
       });

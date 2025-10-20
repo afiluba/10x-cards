@@ -80,8 +80,8 @@ const featureConfig: FeatureConfig = {
 
 4. **Główny interfejs (`src/features/index.ts`)**
    - Funkcja `isFeatureEnabled()`
-   - Logika wykrywania środowiska (ENV_NAME)
+   - Logika wykrywania środowiska (PUBLIC_ENV_NAME)
    - Obsługa fallback dla nieprawidłowych środowisk (zwracamy wartosc false!)
 
 5. **Aktualizacja `src/env.d.ts`**
-   - Dodanie typu dla `ENV_NAME` w `ImportMetaEnv`
+   - Dodanie typu dla `PUBLIC_ENV_NAME` w `ImportMetaEnv`

@@ -3,6 +3,7 @@ import { createSupabaseServerInstance } from "../../../db/supabase.client";
 import { loginCommandSchema } from "../../../lib/schemas/auth.schemas";
 import { mapSupabaseUserToUserDTO, mapSupabaseError, createAuthErrorResponse } from "../../../lib/utils/auth.utils";
 import type { AuthLoginResponseDTO } from "../../../types";
+import { isFeatureEnabled, FeatureFlag } from "../../../features";
 
 export const prerender = false;
 
@@ -47,6 +48,11 @@ function createErrorResponse(code: string, message: string, status: number): Res
  * 500 - Internal server error
  */
 export async function POST({ request, cookies }: APIContext): Promise<Response> {
+  // Check if auth feature is enabled
+  if (!isFeatureEnabled(FeatureFlag.AUTH)) {
+    return createErrorResponse("FEATURE_DISABLED", "Authentication feature is currently disabled", 403);
+  }
+
   try {
     // Parse and validate request body
     const body = await request.json();

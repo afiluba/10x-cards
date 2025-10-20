@@ -3,12 +3,14 @@ import { Logo } from "./Logo";
 import { NavigationLinks } from "./NavigationLinks";
 import { UserMenu } from "./UserMenu";
 import { Button } from "../ui/button";
+import { isFeatureEnabled, FeatureFlag } from "../../features";
 
 /**
  * Main navigation component for the 10x-cards application.
  * Provides navigation between main sections and user account management.
  */
 export function TopNavbar({ user, currentPath, onLogout }: TopNavbarProps) {
+  const isAuthEnabled = isFeatureEnabled(FeatureFlag.AUTH);
   // Define navigation items based on current path
   const navigationItems: NavigationItem[] = [
     {
@@ -43,9 +45,11 @@ export function TopNavbar({ user, currentPath, onLogout }: TopNavbarProps) {
           {user ? (
             <UserMenu user={user} onLogout={onLogout} />
           ) : (
-            <Button asChild variant="ghost" size="sm">
-              <a href="/auth/login">Zaloguj się</a>
-            </Button>
+            isAuthEnabled && (
+              <Button asChild variant="ghost" size="sm">
+                <a href="/auth/login">Zaloguj się</a>
+              </Button>
+            )
           )}
         </div>
       </div>

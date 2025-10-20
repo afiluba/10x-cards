@@ -3,6 +3,7 @@ import { z } from "zod";
 import { AiGenerationSessionCreateSchema } from "../../../lib/schemas/ai-generation.schemas";
 import { createAiGenerationSession } from "../../../lib/services/ai-generation.service";
 import type { ErrorResponseDTO } from "../../../types";
+import { isFeatureEnabled, FeatureFlag } from "../../../features";
 
 export const prerender = false;
 
@@ -60,6 +61,11 @@ function createErrorResponse(
  * - 500: Internal server error
  */
 export async function POST(context: APIContext): Promise<Response> {
+  // 0. Check if AI generation feature is enabled
+  if (!isFeatureEnabled(FeatureFlag.AI_GENERATION)) {
+    return createErrorResponse("FEATURE_DISABLED", "AI generation feature is currently disabled", 403);
+  }
+
   // 1. Parse JSON request body
   let requestBody;
   try {

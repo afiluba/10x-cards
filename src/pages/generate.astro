@@ -1,8 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import GenerateContainer from "../components/generate/GenerateContainer";
+import { isFeatureEnabled, FeatureFlag } from "../features";
 
 export const prerender = false;
+
+// Sprawdź czy funkcjonalność generowania AI jest włączona
+if (!isFeatureEnabled(FeatureFlag.AI_GENERATION)) {
+  return Astro.redirect("/");
+}
 ---
 
 <Layout title="Generowanie Fiszek AI - 10x Cards">

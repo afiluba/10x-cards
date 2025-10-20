@@ -8,6 +8,31 @@ import { DeleteFlashcardModal } from "./DeleteFlashcardModal";
 import { useFlashcardsState } from "./hooks/useFlashcardsState";
 import { toast } from "sonner";
 
+interface FlashcardViewModel {
+  id: string;
+  front_text: string;
+  back_text: string;
+  source_type: string;
+  isFlipped: boolean;
+  isEditing: boolean;
+  isDeleting: boolean;
+}
+
+interface FiltersViewModel {
+  search: string;
+  sourceType: string[];
+  sort: string;
+  page: number;
+  pageSize: number;
+}
+
+interface PaginationViewModel {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalItems: number;
+}
+
 const MyCardsPage: React.FC = () => {
   const {
     flashcards,
@@ -28,7 +53,7 @@ const MyCardsPage: React.FC = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const handleFiltersChange = (newFilters: any) => {
+  const handleFiltersChange = (newFilters: Partial<FiltersViewModel>) => {
     updateFilters(newFilters);
   };
 
@@ -49,7 +74,7 @@ const MyCardsPage: React.FC = () => {
       });
       setIsCreateModalOpen(false);
       toast.success("Fiszka została utworzona pomyślnie");
-    } catch (err) {
+    } catch {
       // Error is already handled in the hook
       toast.error("Nie udało się utworzyć fiszki");
     }
@@ -67,7 +92,7 @@ const MyCardsPage: React.FC = () => {
       });
       stopEditingFlashcard(id);
       toast.success("Fiszka została zaktualizowana pomyślnie");
-    } catch (err) {
+    } catch {
       // Error is already handled in the hook
       toast.error("Nie udało się zaktualizować fiszki");
     }
@@ -77,7 +102,7 @@ const MyCardsPage: React.FC = () => {
     stopEditingFlashcard(id);
   };
 
-  const handleDeleteFlashcard = (flashcard: any) => {
+  const handleDeleteFlashcard = (flashcard: FlashcardViewModel) => {
     startDeletingFlashcard(flashcard.id);
   };
 
@@ -89,7 +114,7 @@ const MyCardsPage: React.FC = () => {
       await deleteFlashcard(flashcardToDelete.id);
       stopDeletingFlashcard(flashcardToDelete.id);
       toast.success("Fiszka została usunięta");
-    } catch (err) {
+    } catch {
       // Error is already handled in the hook
       toast.error("Nie udało się usunąć fiszki");
     }
@@ -102,7 +127,7 @@ const MyCardsPage: React.FC = () => {
     }
   };
 
-  const handlePaginationChange = (newPagination: any) => {
+  const handlePaginationChange = (newPagination: Partial<PaginationViewModel>) => {
     updateFilters({
       page: newPagination.currentPage,
       pageSize: newPagination.pageSize,

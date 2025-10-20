@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/db/database.types";
 import {
   createFlashcard,
   updateFlashcard,
@@ -35,9 +33,11 @@ const createMockQuery = () => {
 };
 
 // Mock Supabase client
-const mockSupabase = {
+const mockSupabase: {
+  from: ReturnType<typeof vi.fn>;
+} = {
   from: vi.fn(() => createMockQuery()),
-} as any;
+};
 
 const mockUserId = "user-123";
 
@@ -120,6 +120,7 @@ describe("Flashcard Service", () => {
       const command = {
         front_text: "Valid front text",
         back_text: "Valid back text",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         source_type: "AI_ORIGINAL" as any, // Invalid for manual creation
       };
 

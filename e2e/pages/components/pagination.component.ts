@@ -102,4 +102,3 @@ export class Pagination {
     return text ? parseInt(text.trim(), 10) : 1;
   }
 }
-

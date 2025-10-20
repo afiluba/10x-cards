@@ -45,9 +45,8 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
     try {
       await resetPassword(data.email);
       toast.success("Link do resetowania hasła został wysłany na email!");
-    } catch (error) {
+    } catch {
       // Error handling is already done in useAuth hook
-      console.error("Reset password error:", error);
     }
   };
 
@@ -55,9 +54,8 @@ export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
     try {
       await updatePassword(data.password, resetToken || undefined);
       toast.success("Hasło zostało pomyślnie zmienione!");
-    } catch (error) {
+    } catch {
       // Error handling is already done in useAuth hook
-      console.error("Update password error:", error);
     }
   };
 

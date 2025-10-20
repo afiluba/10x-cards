@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { expect, vi, beforeAll, afterAll, afterEach } from "vitest";
+import { expect, vi, afterEach } from "vitest";
 
 // Mock environment variables
 Object.defineProperty(window, "matchMedia", {
@@ -99,6 +99,7 @@ expect.extend({});
 
 // Custom matchers can be added here
 declare module "vitest" {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   interface Assertion<T = any> {
     toBeValidFlashcard(): T;
     toHaveValidationError(field: string): T;

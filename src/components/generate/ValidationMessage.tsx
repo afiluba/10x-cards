@@ -10,13 +10,8 @@ export function ValidationMessage({ message, id, className }: ValidationMessageP
   if (!message) return null;
 
   return (
-    <p
-      id={id}
-      className={cn("text-sm text-red-600 dark:text-red-500 mt-1", className)}
-      role="alert"
-    >
+    <p id={id} className={cn("text-sm text-red-600 dark:text-red-500 mt-1", className)} role="alert">
       {message}
     </p>
   );
 }
-

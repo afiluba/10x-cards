@@ -27,4 +27,3 @@ export function CharacterCounter({ current, min, max, className }: CharacterCoun
     </div>
   );
 }
-

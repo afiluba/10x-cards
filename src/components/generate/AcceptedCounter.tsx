@@ -10,4 +10,3 @@ export function AcceptedCounter({ accepted, total }: AcceptedCounterProps) {
     </p>
   );
 }
-

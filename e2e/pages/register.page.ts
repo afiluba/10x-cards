@@ -33,7 +33,7 @@ export class RegisterPage extends BasePage {
    * Check if toast with specific text is visible
    */
   async hasToast(text: string): Promise<boolean> {
-    const toast = this.page.locator('li[data-sonner-toast]').filter({ hasText: text });
+    const toast = this.page.locator("li[data-sonner-toast]").filter({ hasText: text });
     return await toast.isVisible({ timeout: 5000 }).catch(() => false);
   }
 
@@ -72,4 +72,3 @@ export class RegisterPage extends BasePage {
     await this.registerForm.clickLoginLink();
   }
 }
-

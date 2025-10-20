@@ -6,7 +6,7 @@ import type { ApiError, TextLengthValidation, ProposalViewModel } from "./types"
  */
 export function createApiError(errorResponse: ErrorResponseDTO, status: number): ApiError {
   const { error } = errorResponse;
-  
+
   return {
     code: error.code,
     message: error.message,
@@ -28,34 +28,27 @@ function parseRetryAfter(details?: Record<string, string>): number | undefined {
 /**
  * Walidacja długości tekstu
  */
-export function validateTextLength(
-  text: string,
-  min: number,
-  max: number
-): TextLengthValidation {
+export function validateTextLength(text: string, min: number, max: number): TextLengthValidation {
   const current = text.length;
   const isValid = current >= min && current <= max;
-  
+
   let errorMessage: string | null = null;
   if (current < min) {
     errorMessage = `Tekst musi mieć minimum ${min} znaków (obecnie: ${current})`;
   } else if (current > max) {
     errorMessage = `Przekroczono limit ${max} znaków (obecnie: ${current})`;
   }
-  
+
   return { min, max, current, isValid, errorMessage };
 }
 
 /**
  * Konwersja ProposalViewModel do FlashcardBatchSaveCardCommand
  */
-export function proposalToSaveCommand(
-  proposal: ProposalViewModel
-): FlashcardBatchSaveCardCommand {
+export function proposalToSaveCommand(proposal: ProposalViewModel): FlashcardBatchSaveCardCommand {
   return {
     front_text: proposal.front_text,
     back_text: proposal.back_text,
     origin_status: proposal.isEdited ? "AI_EDITED" : "AI_ORIGINAL",
   };
 }
-

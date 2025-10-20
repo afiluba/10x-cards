@@ -10,7 +10,7 @@ export function ProposalContent({ frontText, backText }: ProposalContentProps) {
         <p className="text-xs font-semibold text-muted-foreground mb-1">Przód:</p>
         <p className="text-sm">{frontText}</p>
       </div>
-      
+
       <div>
         <p className="text-xs font-semibold text-muted-foreground mb-1">Tył:</p>
         <p className="text-sm">{backText}</p>
@@ -18,4 +18,3 @@ export function ProposalContent({ frontText, backText }: ProposalContentProps) {
     </div>
   );
 }
-

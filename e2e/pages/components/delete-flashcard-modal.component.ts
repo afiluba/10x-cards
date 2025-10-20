@@ -64,4 +64,3 @@ export class DeleteFlashcardModal {
     await this.modal.waitFor({ state: "hidden" });
   }
 }
-

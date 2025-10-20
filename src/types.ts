@@ -276,10 +276,9 @@ export interface AuthUpdatePasswordCommand {
 
 /**
  * Logout command for authentication API.
+ * Empty object - logout uses session from cookies
  */
-export interface AuthLogoutCommand {
-  // Empty command - logout uses session from cookies
-}
+export type AuthLogoutCommand = Record<string, never>;
 
 /**
  * Login response DTO.

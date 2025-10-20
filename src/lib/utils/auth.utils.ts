@@ -6,9 +6,14 @@ import type { UserDTO } from "../../types";
  * Handles optional fields and provides safe defaults.
  */
 export function mapSupabaseUserToUserDTO(supabaseUser: User): UserDTO {
+  // Email should always be present for authenticated users
+  if (!supabaseUser.email) {
+    throw new Error("User email is required");
+  }
+
   return {
     id: supabaseUser.id,
-    email: supabaseUser.email!, // Email is required for authenticated users
+    email: supabaseUser.email,
     avatar_url: supabaseUser.user_metadata?.avatar_url,
     created_at: supabaseUser.created_at,
   };
@@ -64,8 +69,11 @@ export function mapSupabaseError(error: AuthError): { code: string; message: str
       };
 
     default:
-      // Log unknown errors for debugging
-      console.error("Unknown Supabase auth error:", error);
+      // Log unknown errors for debugging in development
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error("Unknown Supabase auth error:", error);
+      }
       return {
         code: "AUTH_ERROR",
         message: "Wystąpił błąd autentyfikacji. Spróbuj ponownie.",
@@ -76,7 +84,7 @@ export function mapSupabaseError(error: AuthError): { code: string; message: str
 /**
  * Creates a standardized error response for API endpoints.
  */
-export function createAuthErrorResponse(code: string, message: string, status = 400) {
+export function createAuthErrorResponse(code: string, message: string) {
   return {
     error: {
       code,

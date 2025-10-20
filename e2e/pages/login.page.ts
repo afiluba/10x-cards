@@ -44,7 +44,7 @@ export class LoginPage extends BasePage {
    */
   async hasErrorToast(text: string): Promise<boolean> {
     // Sonner toasts render as list items within an ordered list
-    const toast = this.page.locator('li[data-sonner-toast]').filter({ hasText: text });
+    const toast = this.page.locator("li[data-sonner-toast]").filter({ hasText: text });
     return await toast.isVisible({ timeout: 5000 }).catch(() => false);
   }
 
@@ -69,4 +69,3 @@ export class LoginPage extends BasePage {
     await this.loginForm.clickForgotPassword();
   }
 }
-

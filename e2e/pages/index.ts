@@ -1,6 +1,6 @@
 /**
  * Page Objects and Components exports
- * 
+ *
  * This file provides a centralized export for all page objects and components
  * following the Page Object Model (POM) pattern for Playwright tests.
  */
@@ -21,4 +21,3 @@ export { DeleteFlashcardModal } from "./components/delete-flashcard-modal.compon
 export { Pagination } from "./components/pagination.component";
 export { LoginFormComponent } from "./components/login-form.component";
 export { RegisterFormComponent } from "./components/register-form.component";
-

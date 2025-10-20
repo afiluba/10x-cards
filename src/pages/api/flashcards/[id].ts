@@ -1,7 +1,7 @@
 import type { APIContext } from "astro";
 import { FlashcardDeleteSchema, FlashcardUpdateSchema } from "../../../lib/schemas/flashcard.schemas";
 import { deleteFlashcard, updateFlashcard } from "../../../lib/services/flashcard.service";
-import type { ErrorResponseDTO, FlashcardDeleteCommand, FlashcardUpdateCommand, FlashcardDTO } from "../../../types";
+import type { ErrorResponseDTO, FlashcardDeleteCommand, FlashcardUpdateCommand } from "../../../types";
 
 export const prerender = false;
 
@@ -101,7 +101,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
         }
 
         deleteCommand = validationResult.data;
-      } catch (parseError) {
+      } catch {
         return createErrorResponse("INVALID_JSON", "Request body must be valid JSON", 400);
       }
     }

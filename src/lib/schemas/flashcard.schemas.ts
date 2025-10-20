@@ -85,11 +85,7 @@ export const FlashcardCreateSchema = z.object({
     .min(1, "Front text cannot be empty")
     .max(500, "Front text must not exceed 500 characters")
     .trim(),
-  back_text: z
-    .string()
-    .min(1, "Back text cannot be empty")
-    .max(500, "Back text must not exceed 500 characters")
-    .trim(),
+  back_text: z.string().min(1, "Back text cannot be empty").max(500, "Back text must not exceed 500 characters").trim(),
   source_type: z.literal("MANUAL", {
     errorMap: () => ({ message: "Source type must be MANUAL for manual flashcards" }),
   }),
@@ -138,10 +134,7 @@ export type FlashcardUpdateInput = z.infer<typeof FlashcardUpdateSchema>;
  * - Optional reason string (max 500 characters)
  */
 export const FlashcardDeleteSchema = z.object({
-  reason: z
-    .string()
-    .max(500, "Deletion reason must not exceed 500 characters")
-    .optional(),
+  reason: z.string().max(500, "Deletion reason must not exceed 500 characters").optional(),
 });
 
 /**

@@ -15,10 +15,10 @@ export const featureConfig: FeatureConfig = {
   },
   integration: {
     [FeatureFlag.AUTH]: true,
-    [FeatureFlag.AI_GENERATION]: true,
+    [FeatureFlag.AI_GENERATION]: false,
   },
   production: {
     [FeatureFlag.AUTH]: true,
-    [FeatureFlag.AI_GENERATION]: true,
+    [FeatureFlag.AI_GENERATION]: false,
   },
 };

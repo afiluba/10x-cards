@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/database.fixture";
 import { MyCardsPage } from "./pages";
 
 test.describe("Flashcards Management", () => {
@@ -84,6 +84,12 @@ test.describe("Flashcards Management", () => {
       // Create a flashcard first
       await myCardsPage.createNewFlashcard("Test Question", "Test Answer");
 
+      // Wait for flashcard to appear in DOM
+      await myCardsPage.waitForFlashcardWithText("Test Question");
+
+      // Wait for loading to finish and grid to be visible
+      await myCardsPage.waitForFlashcards();
+
       // Verify grid is visible
       expect(await myCardsPage.isFlashcardGridVisible()).toBe(true);
     });
@@ -144,10 +150,21 @@ test.describe("Flashcards Management", () => {
   test.describe("Delete Flashcard", () => {
     test("should delete flashcard successfully", async () => {
       // Create a flashcard
-      await myCardsPage.createNewFlashcard("To Delete", "Back");
+      const textToDelete = "To Delete";
+      await myCardsPage.createNewFlashcard(textToDelete, "Back");
 
-      // Get initial count
-      const initialCount = await myCardsPage.getFlashcardCount();
+      // Wait for flashcard to appear in DOM
+      await myCardsPage.waitForFlashcardWithText(textToDelete);
+
+      // Wait for grid to become visible
+      await expect(myCardsPage.page.locator('[data-test-id="flashcard-grid"]')).toBeVisible();
+
+      // Wait for DOM to stabilize and get initial count
+      let initialCount = 0;
+      await expect(async () => {
+        initialCount = await myCardsPage.getFlashcardCount();
+        expect(initialCount).toBeGreaterThan(0);
+      }).toPass({ timeout: 5000 });
 
       // Delete the flashcard
       await myCardsPage.deleteFlashcard(0);
@@ -162,10 +179,21 @@ test.describe("Flashcards Management", () => {
 
     test("should cancel delete without removing flashcard", async () => {
       // Create a flashcard
-      await myCardsPage.createNewFlashcard("Keep This", "Back");
+      const textToKeep = "Keep This";
+      await myCardsPage.createNewFlashcard(textToKeep, "Back");
 
-      // Get initial count
-      const initialCount = await myCardsPage.getFlashcardCount();
+      // Wait for flashcard to appear in DOM
+      await myCardsPage.waitForFlashcardWithText(textToKeep);
+
+      // Wait for grid to become visible
+      await expect(myCardsPage.page.locator('[data-test-id="flashcard-grid"]')).toBeVisible();
+
+      // Wait for DOM to stabilize and get initial count
+      let initialCount = 0;
+      await expect(async () => {
+        initialCount = await myCardsPage.getFlashcardCount();
+        expect(initialCount).toBeGreaterThan(0);
+      }).toPass({ timeout: 5000 });
 
       // Start delete but cancel
       const card = myCardsPage.getFirstFlashcardCard();

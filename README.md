@@ -80,3 +80,4 @@
 
 ## 8. Licencja
 - Licencja MIT. Przed publicznym wydaniem dodaj plik `LICENSE`, aby sformalizować dystrybucję.
+

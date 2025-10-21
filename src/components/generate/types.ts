@@ -1,8 +1,4 @@
-import type {
-  AiGenerationSessionDTO,
-  AiGenerationProposalDTO,
-  ErrorResponseDTO,
-} from "../../types";
+import type { AiGenerationSessionDTO, AiGenerationProposalDTO } from "../../types";
 
 /**
  * Stan widoku generowania
@@ -69,4 +65,3 @@ export interface GenerateState {
   acceptedCount: number;
   rejectedCount: number;
 }
-

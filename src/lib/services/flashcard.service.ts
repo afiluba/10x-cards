@@ -290,7 +290,7 @@ export async function updateFlashcard(
   }
 
   // 3. Prepare update data
-  const updateData: Record<string, any> = {};
+  const updateData: Record<string, string | null> = {};
 
   if (command.front_text !== undefined) {
     updateData.front_text = command.front_text;
@@ -357,9 +357,11 @@ export async function deleteFlashcard(
   supabase: SupabaseClient<Database>,
   userId: string,
   flashcardId: string,
-  command: FlashcardDeleteCommand
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _command: FlashcardDeleteCommand
 ): Promise<FlashcardDeleteResponseDTO> {
   // 1. Update flashcard with deleted_at timestamp
+  // TODO: Consider using command.reason for audit logging
   const { data: updatedCard, error: updateError } = await supabase
     .from("flashcards")
     .update({

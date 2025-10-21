@@ -108,17 +108,11 @@ export function ProposalEditor({ initialFront, initialBack, onSave, onCancel }: 
         >
           Zapisz
         </Button>
-        
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1"
-        >
+
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
           Anuluj
         </Button>
       </div>
     </div>
   );
 }
-

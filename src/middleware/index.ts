@@ -57,11 +57,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
+  if (user?.email) {
     // eslint-disable-next-line no-console
     console.log(`✅ User authenticated: ${user.email}`);
     context.locals.user = {
-      email: user.email!,
+      email: user.email,
       id: user.id,
       created_at: user.created_at,
     };

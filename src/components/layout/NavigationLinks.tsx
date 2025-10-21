@@ -1,4 +1,5 @@
 import type { NavigationItem } from "../../types";
+import { isFeatureEnabled, FeatureFlag } from "../../features";
 
 interface NavigationLinksProps {
   items: NavigationItem[];
@@ -9,9 +10,19 @@ interface NavigationLinksProps {
  * Displays main application navigation with proper accessibility.
  */
 export function NavigationLinks({ items }: NavigationLinksProps) {
+  const isAiGenerationEnabled = isFeatureEnabled(FeatureFlag.AI_GENERATION);
+
+  // Filter out /generate link if AI_GENERATION feature is disabled
+  const visibleItems = items.filter((item) => {
+    if (item.path === "/generate" && !isAiGenerationEnabled) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <nav className="flex items-center space-x-6 text-sm font-medium" aria-label="Główna nawigacja">
-      {items.map((item) => (
+      {visibleItems.map((item) => (
         <a
           key={item.path}
           href={item.path}

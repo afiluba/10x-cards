@@ -10,16 +10,10 @@ interface SaveButtonProps {
 export function SaveButton({ acceptedCount, onSave, isLoading }: SaveButtonProps) {
   return (
     <div className="flex justify-end mt-6">
-      <Button
-        onClick={onSave}
-        disabled={acceptedCount === 0 || isLoading}
-        size="lg"
-        className="min-w-[200px]"
-      >
+      <Button onClick={onSave} disabled={acceptedCount === 0 || isLoading} size="lg" className="min-w-[200px]">
         {isLoading && <Loader2 className="animate-spin" />}
         Zapisz fiszki ({acceptedCount})
       </Button>
     </div>
   );
 }
-

@@ -41,12 +41,7 @@ export function ProposalCard({ proposal, onCheck, onEdit, onReject }: ProposalCa
   };
 
   return (
-    <Card
-      className={cn(
-        "transition-all",
-        proposal.isEdited && "border-purple-500 dark:border-purple-400"
-      )}
-    >
+    <Card className={cn("transition-all", proposal.isEdited && "border-purple-500 dark:border-purple-400")}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -57,14 +52,11 @@ export function ProposalCard({ proposal, onCheck, onEdit, onReject }: ProposalCa
               disabled={isEditMode}
               aria-label={`Zaakceptuj propozycję`}
             />
-            <label
-              htmlFor={`accept-${proposal.temporary_id}`}
-              className="text-sm font-medium cursor-pointer"
-            >
+            <label htmlFor={`accept-${proposal.temporary_id}`} className="text-sm font-medium cursor-pointer">
               Zaakceptuj
             </label>
           </div>
-          
+
           {proposal.isEdited && (
             <Badge variant="secondary" className="text-xs">
               Edytowano
@@ -83,19 +75,12 @@ export function ProposalCard({ proposal, onCheck, onEdit, onReject }: ProposalCa
           />
         ) : (
           <>
-            <ProposalContent
-              frontText={proposal.front_text}
-              backText={proposal.back_text}
-            />
-            
-            <ProposalActions
-              onEdit={handleEdit}
-              onReject={handleReject}
-            />
+            <ProposalContent frontText={proposal.front_text} backText={proposal.back_text} />
+
+            <ProposalActions onEdit={handleEdit} onReject={handleReject} />
           </>
         )}
       </CardContent>
     </Card>
   );
 }
-

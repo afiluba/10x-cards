@@ -25,12 +25,16 @@ Object.defineProperty(process.env, "SUPABASE_ANON_KEY", {
 beforeAll(async () => {
   // Verify database connection
   try {
-    const { data, error } = await testSupabase.from("flashcards").select("count").limit(1);
-    if (error) {
+    const { error } = await testSupabase.from("flashcards").select("count").limit(1);
+    if (error && import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
       console.warn("Integration test database not available:", error.message);
     }
   } catch (error) {
-    console.warn("Integration test setup warning:", error);
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.warn("Integration test setup warning:", error);
+    }
   }
 });
 
@@ -49,6 +53,7 @@ afterEach(async () => {
 
 // Custom matchers for integration tests
 declare module "vitest" {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   interface Assertion<T = any> {
     toBeValidDatabaseRecord(): T;
     toHaveBeenPersisted(): T;

@@ -34,20 +34,10 @@ export function ProposalsSection({
         onSelectAll={onSelectAll}
         onDeselectAll={onDeselectAll}
       />
-      
-      <ProposalsList
-        proposals={proposals}
-        onCheck={onCheck}
-        onEdit={onEdit}
-        onReject={onReject}
-      />
-      
-      <SaveButton
-        acceptedCount={acceptedCount}
-        onSave={onSave}
-        isLoading={isSaving}
-      />
+
+      <ProposalsList proposals={proposals} onCheck={onCheck} onEdit={onEdit} onReject={onReject} />
+
+      <SaveButton acceptedCount={acceptedCount} onSave={onSave} isLoading={isSaving} />
     </section>
   );
 }
-

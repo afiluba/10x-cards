@@ -1,4 +1,4 @@
-import type { Page, Locator } from "@playwright/test";
+import { type Page, type Locator, expect } from "@playwright/test";
 import { BasePage } from "./base.page";
 import { CreateFlashcardModal } from "./components/create-flashcard-modal.component";
 import { FlashcardCard, FlashcardEditForm } from "./components/flashcard-card.component";
@@ -105,6 +105,7 @@ export class MyCardsPage extends BasePage {
    * Click add flashcard button to open create modal
    */
   async clickAddFlashcard(): Promise<void> {
+    await expect(this.addFlashcardButton).toHaveAttribute("data-ready", "true");
     await this.addFlashcardButton.click();
   }
 

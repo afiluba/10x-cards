@@ -1,5 +1,6 @@
 import type { APIContext } from "astro";
 import { createServerClient } from "@supabase/ssr";
+import { SUPABASE_URL, SUPABASE_KEY } from "astro:env/server";
 import type { Database } from "../../../db/database.types";
 import { resetPasswordCommandSchema } from "../../../lib/schemas/auth.schemas";
 import { mapSupabaseError, createAuthErrorResponse } from "../../../lib/utils/auth.utils";
@@ -56,7 +57,7 @@ export async function POST({ request }: APIContext): Promise<Response> {
     const { email } = validationResult.data;
 
     // Create minimal Supabase client for password reset (no cookie handling needed)
-    const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+    const supabase = createServerClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
       cookies: {
         getAll: () => [],
         setAll: () => undefined,

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { OPENROUTER_API_KEY } from "astro:env/server";
 import type { Database } from "../../db/database.types";
 import type {
   AiGenerationSessionCreateCommand,
@@ -94,7 +95,7 @@ async function generateFlashcardProposals(
   modelIdentifier: string
 ): Promise<AiGenerationProposalDTO[]> {
   // Get API key from environment
-  const apiKey = import.meta.env.OPENROUTER_API_KEY;
+  const apiKey = OPENROUTER_API_KEY;
   if (!apiKey) {
     const error = new Error("OpenRouter API key not configured") as Error & {
       code: string;

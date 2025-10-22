@@ -19,6 +19,6 @@ export const featureConfig: FeatureConfig = {
   },
   production: {
     [FeatureFlag.AUTH]: true,
-    [FeatureFlag.AI_GENERATION]: false,
+    [FeatureFlag.AI_GENERATION]: true,
   },
 };

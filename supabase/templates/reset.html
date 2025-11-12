@@ -1,0 +1,7 @@
+<p>Follow this link to reset your passwoed:</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?code={{ .TokenHash }}"
+    >Confirm your email</a
+  >
+  {{ .TokenHash }}
+</p>

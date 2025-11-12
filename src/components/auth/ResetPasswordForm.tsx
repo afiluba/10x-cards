@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import {
@@ -19,9 +20,31 @@ interface ResetPasswordFormProps {
  * Password reset form component that handles both password reset request and password update.
  * Shows different UI based on whether a reset token is present in URL parameters.
  */
-export function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
+export function ResetPasswordForm({ resetToken: resetTokenProp }: ResetPasswordFormProps) {
+  // Debug: Log the received token
+  console.log("[Client] Reset token received from prop:", resetTokenProp);
+  console.log("[Client] Reset token type:", typeof resetTokenProp);
+
+  // Fallback: Check URL on client side if prop is not available
+  const [resetToken, setResetToken] = useState<string | null>(resetTokenProp || null);
+
+  useEffect(() => {
+    // If no token from prop, check URL directly on client
+    if (!resetTokenProp && typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const codeFromUrl = urlParams.get("code");
+      console.log("[Client] Code from URL params:", codeFromUrl);
+      if (codeFromUrl) {
+        setResetToken(codeFromUrl);
+      }
+    }
+  }, [resetTokenProp]);
+
   const { resetPassword, updatePassword, isLoading } = useAuth();
   const isUpdateMode = !!resetToken;
+
+  console.log("[Client] Final resetToken:", resetToken);
+  console.log("[Client] isUpdateMode:", isUpdateMode);
 
   const {
     register: registerRequest,

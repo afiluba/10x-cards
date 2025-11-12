@@ -51,7 +51,7 @@ export const FlashcardEditForm: React.FC<FlashcardEditFormProps> = ({ flashcard,
 
   return (
     <Card
-      className="w-full h-[250px] border-2 border-blue-500 bg-blue-50 dark:bg-blue-950"
+      className="w-full min-h-[400px] border-2 border-blue-500 bg-blue-50 dark:bg-blue-950"
       data-test-id="flashcard-edit-form"
     >
       <CardContent className="p-4 h-full flex flex-col">
